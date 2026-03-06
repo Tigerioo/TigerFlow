@@ -18,7 +18,7 @@ struct SidebarView: View {
     @Bindable var appState: AppState
 
     var body: some View {
-        List {
+        List(selection: $appState.selectedSidebarItem) {
             flowsSection
             domainsSection
             peopleSection

@@ -11,106 +11,139 @@ import SwiftData
 /// 时间线列表项视图
 struct TimelineItemView: View {
     let item: FlowItem
-    let showDateCircle: Bool
     let showCheckbox: Bool
+    var isFirstOfDay: Bool = false  // 是否是每天第一条
+    var isLastOfDay: Bool = false   // 是否是每天最后一条
 
     @Environment(\.modelContext) private var modelContext
     @State private var isHovering: Bool = false
 
+    // 主题紫色
+    private let themePurple = Color.accentColor
+
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
-            // 左侧：DateCircle 或 Checkbox 或占位
-            leftIndicator
+            // 左侧：复选框或占位
+            checkboxView
+                .frame(width: 24, height: 24)
 
             // 右侧：内容
-            VStack(alignment: .leading, spacing: 4) {
-                // 标题
-                HStack {
+            VStack(alignment: .leading, spacing: 6) {
+                // 标题行
+                HStack(alignment: .center, spacing: 8) {
                     Text(item.title)
                         .font(.body)
+                        .fontWeight(item.isCompleted ? .regular : .medium)
+                        .foregroundColor(item.isCompleted ? .secondary : .primary)
+                        .strikethrough(item.isCompleted, color: item.isCompleted ? themePurple.opacity(0.6) : .clear)
                         .lineLimit(2)
-                        .strikethrough(item.isCompleted, color: .secondary)
-
-                    if item.isMemorable {
-                        Image(systemName: "star.fill")
-                            .font(.caption)
-                            .foregroundColor(.yellow)
-                    }
 
                     Spacer()
 
-                    // 优先级指示
-                    if item.priority != .medium {
-                        Image(systemName: item.priority.icon)
-                            .font(.caption)
-                            .foregroundColor(priorityColor)
+                    // 优先级和纪念标识
+                    HStack(spacing: 6) {
+                        if item.isMemorable {
+                            Image(systemName: "star.fill")
+                                .font(.caption)
+                                .foregroundColor(.yellow)
+                        }
+
+                        if item.priority != .medium && !item.isCompleted {
+                            Image(systemName: item.priority.icon)
+                                .font(.caption2)
+                                .foregroundColor(priorityColor)
+                        }
                     }
                 }
 
                 // 内容（如果有）
                 if let content = item.content, !content.isEmpty {
                     Text(content)
-                        .font(.caption)
+                        .font(.subheadline)
                         .foregroundColor(.secondary)
                         .lineLimit(2)
                 }
 
                 // 标签和对象
                 if !item.tags.isEmpty || !item.entities.isEmpty {
-                    HStack(spacing: 6) {
-                        // 标签
+                    HStack(spacing: 8) {
                         ForEach(item.tags) { tag in
                             TagChip(tag: tag)
                         }
 
-                        // 对象
                         ForEach(item.entities) { entity in
                             EntityChip(entity: entity)
                         }
                     }
-                    .padding(.top, 4)
+                    .padding(.top, 2)
                 }
             }
 
             Spacer(minLength: 0)
         }
-        .padding(.horizontal)
-        .padding(.vertical, 8)
-        .background(isHovering ? Color(.systemGray6) : Color.clear)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(isHovering ? Color(.systemGray6) : Color.clear)
+        )
         .contentShape(Rectangle())
         .onHover { hovering in
-            isHovering = hovering
+            withAnimation(.easeInOut(duration: 0.15)) {
+                isHovering = hovering
+            }
         }
         .contextMenu {
             itemContextMenu
         }
     }
 
-    // MARK: - 左侧指示器
+    // MARK: - 复选框视图
 
     @ViewBuilder
-    private var leftIndicator: some View {
-        if showDateCircle {
-            if showCheckbox {
-                // Task Flow: 显示 Checkbox
-                Button {
-                    toggleComplete()
-                } label: {
-                    Image(systemName: item.isCompleted ? "checkmark.circle.fill" : "circle")
-                        .font(.title2)
-                        .foregroundColor(item.isCompleted ? .green : .secondary)
+    private var checkboxView: some View {
+        if showCheckbox {
+            Button {
+                toggleComplete()
+            } label: {
+                ZStack {
+                    // 圆角矩形边框
+                    RoundedRectangle(cornerRadius: 4)
+                        .strokeBorder(
+                            item.isCompleted ? themePurple : Color.secondary.opacity(0.5),
+                            lineWidth: 2
+                        )
+
+                    // 完成后填充紫色
+                    if item.isCompleted {
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(themePurple)
+                    }
+
+                    // 勾选图标
+                    if item.isCompleted {
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundColor(.white)
+                    }
                 }
-                .buttonStyle(.plain)
-                .frame(width: 32, height: 32)
-            } else {
-                // 非 Task Flow: 显示 DateCircle
-                DateCircleView(date: item.occurredAt)
             }
+            .buttonStyle(.plain)
         } else {
-            // 占位，保持对齐
-            Color.clear
-                .frame(width: 32, height: 32)
+            // 非任务流：显示时间
+            VStack(alignment: .leading, spacing: 2) {
+                Text(timeFormatter.string(from: item.occurredAt))
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .foregroundColor(.secondary)
+            }
         }
+    }
+
+    private var timeFormatter: DateFormatter {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm"
+        return formatter
     }
 
     // MARK: - 优先级颜色
@@ -163,7 +196,6 @@ struct TimelineItemView: View {
         }
 
         Button {
-            // 标记为值得纪念
             item.isMemorable.toggle()
         } label: {
             Label(item.isMemorable ? "取消纪念" : "标记为纪念",
@@ -174,7 +206,6 @@ struct TimelineItemView: View {
             Divider()
 
             Button {
-                // 转事件流
                 promoteToEvent()
             } label: {
                 Label("升级为事件", systemImage: "arrow.up.circle")
@@ -199,7 +230,7 @@ struct TimelineItemView: View {
     // MARK: - 操作
 
     private func toggleComplete() {
-        withAnimation {
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
             item.status = item.isCompleted ? .pending : .completed
             item.updatedAt = Date()
         }
@@ -214,10 +245,8 @@ struct TimelineItemView: View {
 
     private func promoteToEvent() {
         withAnimation {
-            // 1. 获取或创建 Event Flow
             let eventFlow = getOrCreateEventFlow()
 
-            // 2. 创建新的 Event Item
             let eventItem = FlowItem(
                 title: item.title,
                 content: item.content,
@@ -228,21 +257,17 @@ struct TimelineItemView: View {
                 isMemorable: true
             )
 
-            // 3. 复制标签和对象
             eventItem.tags = item.tags
             eventItem.entities = item.entities
 
-            // 4. 将原任务标记为已完成
             item.status = .completed
             item.updatedAt = Date()
 
-            // 5. 保存
             modelContext.insert(eventItem)
         }
     }
 
     private func getOrCreateEventFlow() -> Flow {
-        // 简单遍历获取 Event Flow（避免 Predicate 宏的枚举比较问题）
         let descriptor = FetchDescriptor<Flow>(
             sortBy: [SortDescriptor(\.sortOrder)]
         )
@@ -252,7 +277,6 @@ struct TimelineItemView: View {
             return eventFlow
         }
 
-        // 创建默认 Event Flow
         let newFlow = Flow(
             name: "事件流",
             type: .event,
@@ -265,7 +289,7 @@ struct TimelineItemView: View {
     }
 
     private func deleteItem() {
-        withAnimation {
+        withAnimation(.easeOut(duration: 0.2)) {
             modelContext.delete(item)
         }
     }
@@ -276,17 +300,29 @@ struct TimelineItemView: View {
 #Preview {
     VStack(spacing: 0) {
         TimelineItemView(
-            item: FlowItem(title: "完成任务", content: "这是任务内容"),
-            showDateCircle: true,
-            showCheckbox: true
+            item: FlowItem(title: "完成项目提案", content: "这是任务内容"),
+            showCheckbox: true,
+            isFirstOfDay: true,
+            isLastOfDay: false
         )
 
         Divider()
 
         TimelineItemView(
-            item: FlowItem(title: "第二条记录"),
-            showDateCircle: false,
-            showCheckbox: false
+            item: FlowItem(title: "写周报 #工作 @老板"),
+            showCheckbox: false,
+            isFirstOfDay: false,
+            isLastOfDay: false
+        )
+
+        Divider()
+
+        TimelineItemView(
+            item: FlowItem(title: "已完成的任务", status: .completed),
+            showCheckbox: true,
+            isFirstOfDay: true,
+            isLastOfDay: true
         )
     }
+    .padding()
 }

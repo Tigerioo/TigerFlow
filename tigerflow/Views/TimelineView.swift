@@ -2,7 +2,7 @@
 //  TimelineView.swift
 //  tigerflow
 //
-//  时间线视图
+//  时间线视图 - 按年/月/日分组展示 FlowItems
 //
 
 import SwiftUI
@@ -12,8 +12,6 @@ import SwiftData
 struct TimelineView: View {
     let items: [FlowItem]
     let flowType: FlowType
-
-    @State private var stickyMonth: String?
 
     var body: some View {
         ScrollView {
@@ -27,21 +25,8 @@ struct TimelineView: View {
                     ForEach(yearGroups.keys.sorted(by: >), id: \.self) { month in
                         let monthGroups = yearGroups[month] ?? [:]
 
-                        // 月份 Sticky Header
-                        MonthHeader(month: month, isSticky: stickyMonth == month)
-
-                        // 日分组
-                        ForEach(monthGroups.keys.sorted(by: >), id: \.self) { day in
-                            let dayItems = monthGroups[day] ?? []
-
-                            // 日分组
-                            DaySection(
-                                date: day,
-                                items: dayItems,
-                                flowType: flowType,
-                                isFirstDayOfMonth: day == dayItems.first?.occurredAt
-                            )
-                        }
+                        // 月份分组
+                        MonthSection(month: month, monthGroups: monthGroups, flowType: flowType)
                     }
                 }
 
@@ -50,6 +35,7 @@ struct TimelineView: View {
                     EmptyTimelineView(flowType: flowType)
                 }
             }
+            .padding(.horizontal, 16)
         }
     }
 
@@ -99,21 +85,19 @@ struct YearHeader: View {
             .font(.title2)
             .fontWeight(.bold)
             .foregroundColor(.primary)
-            .padding(.horizontal)
             .padding(.top, 16)
-            .padding(.bottom, 8)
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.bottom, 12)
     }
 }
 
-// MARK: - Month Header
+// MARK: - Month Section
 
-struct MonthHeader: View {
+struct MonthSection: View {
     let month: String
-    let isSticky: Bool
+    let monthGroups: [Date: [FlowItem]]
+    let flowType: FlowType
 
     private var displayMonth: String {
-        // 解析 "yyyy-MM" 格式
         let components = month.split(separator: "-")
         if components.count == 2,
            let monthNum = Int(components[1]) {
@@ -125,21 +109,23 @@ struct MonthHeader: View {
     }
 
     var body: some View {
-        Text(displayMonth)
-            .font(.headline)
-            .foregroundColor(.secondary)
-            .padding(.horizontal)
-            .padding(.vertical, 6)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(isSticky ? Color(.systemBackground) : Color.clear)
-            .background(
-                GeometryReader { geometry in
-                    Color.clear.preference(
-                        key: ScrollOffsetPreferenceKey.self,
-                        value: geometry.frame(in: .named("scroll")).minY
-                    )
-                }
-            )
+        VStack(alignment: .leading, spacing: 12) {
+            // 月份标题
+            Text(displayMonth)
+                .font(.headline)
+                .foregroundColor(.secondary)
+                .padding(.leading, 8)
+
+            // 日分组
+            ForEach(monthGroups.keys.sorted(by: >), id: \.self) { day in
+                let dayItems = monthGroups[day] ?? []
+                DaySection(
+                    date: day,
+                    items: dayItems,
+                    flowType: flowType
+                )
+            }
+        }
     }
 }
 
@@ -149,11 +135,12 @@ struct DaySection: View {
     let date: Date
     let items: [FlowItem]
     let flowType: FlowType
-    let isFirstDayOfMonth: Bool
 
-    private var dayFormatter: DateFormatter {
+    @State private var isExpanded: Bool = true
+
+    private var dateFormatter: DateFormatter {
         let formatter = DateFormatter()
-        formatter.dateFormat = "d日"
+        formatter.dateFormat = "MMdd"
         return formatter
     }
 
@@ -161,17 +148,56 @@ struct DaySection: View {
         Calendar.current.isDateInToday(date)
     }
 
+    private var weekday: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "E"
+        return formatter.string(from: date)
+    }
+
+    private var weekdayIndex: Int {
+        let calendar = Calendar.current
+        let weekday = calendar.component(.weekday, from: date)
+        // 转换为中文周几 (1=周日, 2=周一, ..., 7=周六)
+        let weekdays = ["日", "一", "二", "三", "四", "五", "六"]
+        return weekday - 1
+    }
+
+    private var chineseWeekday: String {
+        let weekdays = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"]
+        return weekdays[weekdayIndex]
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // 日期标题
-            HStack {
-                Text(dayFormatter.string(from: date))
+            // 日期行 - 可折叠
+            HStack(alignment: .center, spacing: 8) {
+                // 折叠箭头
+                Button {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        isExpanded.toggle()
+                    }
+                } label: {
+                    Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .frame(width: 16, height: 16)
+                }
+                .buttonStyle(.plain)
+
+                // 日期：0306 周五 格式
+                Text(dateFormatter.string(from: date))
                     .font(.subheadline)
-                    .foregroundColor(isToday ? .accentColor : .secondary)
+                    .fontWeight(.bold)
+                    .foregroundColor(isToday ? .accentColor : .primary)
+
+                Text(chineseWeekday)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
 
                 if isToday {
                     Text("今天")
-                        .font(.caption)
+                        .font(.caption2)
+                        .fontWeight(.medium)
                         .foregroundColor(.white)
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
@@ -180,20 +206,47 @@ struct DaySection: View {
                 }
 
                 Spacer()
-            }
-            .padding(.horizontal)
-            .padding(.top, 8)
-            .padding(.bottom, 4)
 
-            // Items
-            ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
-                TimelineItemView(
-                    item: item,
-                    showDateCircle: index == 0,  // 仅每天首条显示 DateCircle
-                    showCheckbox: flowType.showCheckbox
-                )
+                // 显示任务数量
+                Text("\(items.count) 项")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            .padding(.leading, 8)
+            .padding(.vertical, 8)
+            .background(Color(.systemGray6).opacity(0.5))
+            .contentShape(Rectangle())
+            .onTapGesture {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    isExpanded.toggle()
+                }
+            }
+
+            // Items - 缩进显示
+            if isExpanded {
+                VStack(spacing: 0) {
+                    ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
+                        TimelineItemView(
+                            item: item,
+                            showCheckbox: flowType.showCheckbox,
+                            isFirstOfDay: index == 0,
+                            isLastOfDay: index == items.count - 1
+                        )
+
+                        // 添加连接线（除了最后一个）
+                        if index < items.count - 1 {
+                            Rectangle()
+                                .fill(Color.secondary.opacity(0.2))
+                                .frame(width: 2)
+                                .padding(.leading, 41) // 与checkbox对齐
+                        }
+                    }
+                }
+                .padding(.leading, 8)
+                .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
+        .padding(.bottom, 8)
     }
 }
 
@@ -206,7 +259,7 @@ struct EmptyTimelineView: View {
         VStack(spacing: 16) {
             Image(systemName: flowType.icon)
                 .font(.system(size: 48))
-                .foregroundColor(.secondary)
+                .foregroundColor(.secondary.opacity(0.5))
 
             Text("暂无记录")
                 .font(.headline)
@@ -214,7 +267,7 @@ struct EmptyTimelineView: View {
 
             Text("点击右上角 + 按钮创建第一条记录")
                 .font(.subheadline)
-                .foregroundColor(.secondary)
+                .foregroundColor(.secondary.opacity(0.8))
                 .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)
