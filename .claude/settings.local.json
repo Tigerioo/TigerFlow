@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(brew install xcodegen)"
+      "Bash(brew install xcodegen)",
+      "Bash(xcodebuild -project tigerflow.xcodeproj -scheme tigerflow -configuration Debug -destination 'platform=iOS Simulator,name=iPhone 16 Pro' build)",
+      "Bash(xcodebuild -project tigerflow.xcodeproj -scheme tigerflow -configuration Debug -destination 'platform=iOS Simulator,name=iPhone 17 Pro' build)"
     ]
   }
 }
