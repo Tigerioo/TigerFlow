@@ -17,6 +17,9 @@ struct TimelineListView: View {
     @Bindable var appState: AppState
     @State private var isCreating: Bool = false
 
+    /// 是否显示同步到生活流的选项
+    @State private var syncToLife: Bool = true
+
     private var items: [FlowItem] {
         // 根据 FlowType 过滤
         let filtered: [FlowItem]
@@ -51,6 +54,8 @@ struct TimelineListView: View {
             if isCreating {
                 InlineEditorView(
                     flowType: flowType,
+                    showSyncOption: flowType == .task,
+                    syncToLife: $syncToLife,
                     onSave: saveItem,
                     onCancel: cancelCreate
                 )
@@ -69,23 +74,37 @@ struct TimelineListView: View {
             }
 
             ToolbarItem(placement: .automatic) {
-                Menu {
-                    Button {
-                        // 排序方式
-                    } label: {
-                        Label("按时间排序", systemImage: "clock")
-                    }
-                    Button {
-                        // 另一种排序
-                    } label: {
-                        Label("按创建时间", systemImage: "calendar.badge.plus")
-                    }
-                } label: {
-                    Image(systemName: "arrow.up.arrow.down")
-                }
-                .help("排序")
+                sortMenu
             }
         }
+    }
+
+    @ViewBuilder
+    private var sortMenu: some View {
+        Menu {
+            Button {
+                // 按时间排序
+            } label: {
+                Label("按时间排序", systemImage: "clock")
+            }
+
+            Button {
+                // 按创建时间
+            } label: {
+                Label("按创建时间", systemImage: "calendar.badge.plus")
+            }
+
+            if flowType == .task {
+                Button {
+                    // 按优先级
+                } label: {
+                    Label("按优先级", systemImage: "flag")
+                }
+            }
+        } label: {
+            Image(systemName: "arrow.up.arrow.down")
+        }
+        .help("排序")
     }
 
     // MARK: - 创建操作
@@ -102,7 +121,7 @@ struct TimelineListView: View {
         }
     }
 
-    private func saveItem(title: String, content: String?) {
+    private func saveItem(title: String, content: String?, tags: [Tag], entities: [Entity]) {
         guard !title.isEmpty else {
             cancelCreate()
             return
@@ -119,15 +138,48 @@ struct TimelineListView: View {
                 flow: flow
             )
 
-            // 如果是 Task Flow，默认同步到 Life Flow
-            if flowType == .task {
-                // TODO: 可配置的同步逻辑
+            // 设置标签和对象
+            item.tags = tags
+            item.entities = entities
+
+            // 增加使用次数
+            for tag in tags {
+                tag.usageCount += 1
+            }
+            for entity in entities {
+                entity.usageCount += 1
+            }
+
+            // 如果是 Task Flow 且开启了同步，生成 Life 记录
+            if flowType == .task && syncToLife {
+                syncToLifeFlow(item: item)
             }
 
             modelContext.insert(item)
         }
 
         cancelCreate()
+    }
+
+    /// 同步到生活流
+    private func syncToLifeFlow(item: FlowItem) {
+        let lifeFlow = getOrCreateFlow(for: .life)
+
+        let lifeItem = FlowItem(
+            title: item.title,
+            content: item.content,
+            occurredAt: Date(),
+            isFromTaskSync: true,
+            sourceItemId: item.id,
+            flow: lifeFlow,
+            domain: item.domain
+        )
+
+        // 复制标签和对象
+        lifeItem.tags = item.tags
+        lifeItem.entities = item.entities
+
+        modelContext.insert(lifeItem)
     }
 
     private func getOrCreateFlow(for type: FlowType) -> Flow {
@@ -155,32 +207,51 @@ struct TimelineListView: View {
 
 struct InlineEditorView: View {
     let flowType: FlowType
-    let onSave: (String, String?) -> Void
+    let showSyncOption: Bool
+    @Binding var syncToLife: Bool
+    let onSave: (String, String?, [Tag], [Entity]) -> Void
     let onCancel: () -> Void
 
+    @Environment(\.modelContext) private var modelContext
     @State private var title: String = ""
     @State private var content: String = ""
+    @State private var parsedTags: [Tag] = []
+    @State private var parsedEntities: [Entity] = []
+
     @FocusState private var isFocused: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            // 标题输入
-            TextField("输入标题...", text: $title)
-                .font(.body)
-                .focused($isFocused)
-                .onSubmit {
-                    if !title.isEmpty {
-                        onSave(title, content.isEmpty ? nil : content)
-                    }
+            // 快速输入框（支持智能解析）
+            QuickInputField(text: $title, onSubmit: submit)
+                .onChange(of: title) { _, newValue in
+                    parseInput(newValue)
                 }
 
-            // 内容输入（可选）
-            TextField("添加描述（可选）...", text: $content)
-                .font(.caption)
-                .foregroundColor(.secondary)
-                .onSubmit {
-                    onSave(title, content.isEmpty ? nil : content)
+            // 解析预览
+            if !parsedTags.isEmpty || !parsedEntities.isEmpty {
+                HStack(spacing: 6) {
+                    ForEach(parsedTags) { tag in
+                        TagChip(tag: tag)
+                    }
+                    ForEach(parsedEntities) { entity in
+                        EntityChip(entity: entity)
+                    }
                 }
+            }
+
+            // 同步选项（仅任务流显示）
+            if showSyncOption {
+                Toggle(isOn: $syncToLife) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "heart.fill")
+                            .foregroundColor(.orange)
+                        Text("同步到生活流")
+                            .font(.caption)
+                    }
+                }
+                .padding(.top, 4)
+            }
 
             // 操作按钮
             HStack {
@@ -193,10 +264,10 @@ struct InlineEditorView: View {
                 Spacer()
 
                 Button("保存") {
-                    onSave(title, content.isEmpty ? nil : content)
+                    submit()
                 }
                 .buttonStyle(.borderedProminent)
-                .disabled(title.isEmpty)
+                .disabled(title.trimmingCharacters(in: .whitespaces).isEmpty)
             }
             .padding(.top, 4)
         }
@@ -207,6 +278,27 @@ struct InlineEditorView: View {
             isFocused = true
         }
     }
+
+    private func parseInput(_ text: String) {
+        let result = SmartParser.parse(text, context: modelContext)
+        parsedTags = result.tags
+        parsedEntities = result.entities
+    }
+
+    private func submit() {
+        let cleanTitle = title
+            .replacingOccurrences(of: "#\\w+", with: "", options: .regularExpression)
+            .replacingOccurrences(of: "@\\w+", with: "", options: .regularExpression)
+            .trimmingCharacters(in: .whitespaces)
+            .replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
+
+        guard !cleanTitle.isEmpty else {
+            onCancel()
+            return
+        }
+
+        onSave(cleanTitle, content.isEmpty ? nil : content, parsedTags, parsedEntities)
+    }
 }
 
 // MARK: - Preview
@@ -215,5 +307,5 @@ struct InlineEditorView: View {
     NavigationStack {
         TimelineListView(flowType: .task, appState: AppState())
     }
-    .modelContainer(for: [FlowItem.self, Flow.self], inMemory: true)
+    .modelContainer(for: [FlowItem.self, Flow.self, Tag.self, Entity.self], inMemory: true)
 }

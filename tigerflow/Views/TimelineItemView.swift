@@ -137,6 +137,29 @@ struct TimelineItemView: View {
                 Label(item.isCompleted ? "标记为未完成" : "标记为完成",
                       systemImage: item.isCompleted ? "circle" : "checkmark.circle")
             }
+
+            // 优先级子菜单
+            Menu {
+                Button {
+                    setPriority(.high)
+                } label: {
+                    Label("高", systemImage: item.priority == .high ? "checkmark" : "")
+                }
+                Button {
+                    setPriority(.medium)
+                } label: {
+                    Label("中", systemImage: item.priority == .medium ? "checkmark" : "")
+                }
+                Button {
+                    setPriority(.low)
+                } label: {
+                    Label("低", systemImage: item.priority == .low ? "checkmark" : "")
+                }
+            } label: {
+                Label("优先级", systemImage: item.priority.icon)
+            }
+
+            Divider()
         }
 
         Button {
@@ -147,13 +170,15 @@ struct TimelineItemView: View {
                   systemImage: item.isMemorable ? "star" : "star.fill")
         }
 
-        Divider()
+        if item.flowType == .task || item.flowType == .life {
+            Divider()
 
-        Button {
-            // 转事件流
-            promoteToEvent()
-        } label: {
-            Label("升级为事件", systemImage: "arrow.up.circle")
+            Button {
+                // 转事件流
+                promoteToEvent()
+            } label: {
+                Label("升级为事件", systemImage: "arrow.up.circle")
+            }
         }
 
         Divider()
@@ -180,8 +205,63 @@ struct TimelineItemView: View {
         }
     }
 
+    private func setPriority(_ priority: FlowItemPriority) {
+        withAnimation {
+            item.priority = priority
+            item.updatedAt = Date()
+        }
+    }
+
     private func promoteToEvent() {
-        // TODO: 实现升级到事件流
+        withAnimation {
+            // 1. 获取或创建 Event Flow
+            let eventFlow = getOrCreateEventFlow()
+
+            // 2. 创建新的 Event Item
+            let eventItem = FlowItem(
+                title: item.title,
+                content: item.content,
+                occurredAt: Date(),
+                sourceItemId: item.id,
+                flow: eventFlow,
+                domain: item.domain,
+                isMemorable: true
+            )
+
+            // 3. 复制标签和对象
+            eventItem.tags = item.tags
+            eventItem.entities = item.entities
+
+            // 4. 将原任务标记为已完成
+            item.status = .completed
+            item.updatedAt = Date()
+
+            // 5. 保存
+            modelContext.insert(eventItem)
+        }
+    }
+
+    private func getOrCreateEventFlow() -> Flow {
+        // 简单遍历获取 Event Flow（避免 Predicate 宏的枚举比较问题）
+        let descriptor = FetchDescriptor<Flow>(
+            sortBy: [SortDescriptor(\.sortOrder)]
+        )
+
+        let allFlows = (try? modelContext.fetch(descriptor)) ?? []
+        if let eventFlow = allFlows.first(where: { $0.type == .event }) {
+            return eventFlow
+        }
+
+        // 创建默认 Event Flow
+        let newFlow = Flow(
+            name: "事件流",
+            type: .event,
+            icon: "star.fill",
+            color: "#FFCC00",
+            sortOrder: 2
+        )
+        modelContext.insert(newFlow)
+        return newFlow
     }
 
     private func deleteItem() {
