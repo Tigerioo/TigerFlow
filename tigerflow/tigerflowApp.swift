@@ -21,7 +21,8 @@ struct tigerflowApp: App {
         let modelConfiguration = ModelConfiguration(
             schema: schema,
             isStoredInMemoryOnly: false,
-            allowsSave: true
+            allowsSave: true,
+            cloudKitDatabase: .private("iCloud.com.tigerflow.app")
         )
 
         do {
