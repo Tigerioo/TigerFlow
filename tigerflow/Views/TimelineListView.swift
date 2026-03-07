@@ -261,11 +261,52 @@ struct TimelineListView: View {
     }
 
     private func deleteItem(item: FlowItem) {
+        // 先获取关联的标签和对象
+        let tagsToCheck = item.tags
+        let entitiesToCheck = item.entities
+
         withAnimation(.easeOut(duration: 0.2)) {
             modelContext.delete(item)
         }
+
+        // 清理不再被引用的标签和对象
+        cleanupUnusedTags(tagsToCheck)
+        cleanupUnusedEntities(entitiesToCheck)
+
         // 关闭编辑器
         cancelEditor()
+    }
+
+    // 清理不再被引用的标签
+    private func cleanupUnusedTags(_ tags: [Tag]) {
+        // 获取所有 FlowItem
+        let descriptor = FetchDescriptor<FlowItem>()
+        guard let allItems = try? modelContext.fetch(descriptor) else { return }
+
+        for tag in tags {
+            // 检查是否有其他任务引用此标签
+            let isReferenced = allItems.contains { item in
+                item.tags.contains { $0.id == tag.id }
+            }
+            if !isReferenced {
+                modelContext.delete(tag)
+            }
+        }
+    }
+
+    // 清理不再被引用的对象
+    private func cleanupUnusedEntities(_ entities: [Entity]) {
+        let descriptor = FetchDescriptor<FlowItem>()
+        guard let allItems = try? modelContext.fetch(descriptor) else { return }
+
+        for entity in entities {
+            let isReferenced = allItems.contains { item in
+                item.entities.contains { $0.id == entity.id }
+            }
+            if !isReferenced {
+                modelContext.delete(entity)
+            }
+        }
     }
 
     private func syncToLifeFlow(item: FlowItem) {
