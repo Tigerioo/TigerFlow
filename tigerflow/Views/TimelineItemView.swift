@@ -29,9 +29,9 @@ struct TimelineItemView: View {
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
-            // 左侧：复选框或占位
+            // 左侧：复选框或时间
             checkboxView
-                .frame(width: 24, height: 24)
+                .frame(width: showCheckbox ? 24 : 44, height: 24)
 
             // 右侧：内容
             VStack(alignment: .leading, spacing: 6) {
