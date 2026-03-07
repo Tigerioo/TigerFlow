@@ -267,30 +267,6 @@ struct DaySection: View {
                                 onSaveToLife: { onSaveToLife?(item) },
                                 onDelete: { onDelete?(item) }
                             )
-                            .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                                // 左侧：存生活流
-                                Button {
-                                    onSaveToLife?(item)
-                                } label: {
-                                    VStack(spacing: 2) {
-                                        Image(systemName: "heart.fill")
-                                        Text("存生活流")
-                                            .font(.caption2)
-                                    }
-                                }
-                                .tint(.orange)
-
-                                // 右侧：删除
-                                Button(role: .destructive) {
-                                    onDelete?(item)
-                                } label: {
-                                    VStack(spacing: 2) {
-                                        Image(systemName: "trash.fill")
-                                        Text("删除")
-                                            .font(.caption2)
-                                    }
-                                }
-                            }
                         } else {
                             // 非任务流不添加滑动操作
                             TimelineItemView(

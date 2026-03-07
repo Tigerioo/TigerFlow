@@ -146,48 +146,6 @@ struct TimelineItemView: View {
     }
 }
 
-// MARK: - Swipe Actions
-
-extension TimelineItemView {
-    /// 任务流的滑动操作（左滑）
-    @ViewBuilder
-    func taskSwipeActions() -> some View {
-        HStack(spacing:0) {
-            // 左侧：存生活流
-            if let onSaveToLife = onSaveToLife {
-                Button(action: onSaveToLife) {
-                    VStack(spacing: 4) {
-                        Image(systemName: "heart.fill")
-                            .font(.title3)
-                        Text("存生活流")
-                            .font(.caption)
-                    }
-                    .foregroundColor(.orange)
-                    .frame(maxWidth: .infinity)
-                    .background(Color.orange.opacity(0.15))
-                }
-                .buttonStyle(.plain)
-            }
-
-            // 右侧：删除
-            if let onDelete = onDelete {
-                Button(action: onDelete) {
-                    VStack(spacing: 4) {
-                        Image(systemName: "trash.fill")
-                            .font(.title3)
-                        Text("删除")
-                            .font(.caption)
-                    }
-                    .foregroundColor(.red)
-                    .frame(maxWidth: .infinity)
-                    .background(Color.red.opacity(0.15))
-                }
-                .buttonStyle(.plain)
-            }
-        }
-    }
-}
-
 // MARK: - Preview
 
 #Preview {

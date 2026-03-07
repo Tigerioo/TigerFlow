@@ -108,7 +108,8 @@ struct TimelineListView: View {
                         tags: $editorTags,
                         entities: $editorEntities,
                         onSave: saveEditor,
-                        onCancel: cancelEditor
+                        onCancel: cancelEditor,
+                        onDelete: editingItem != nil ? { deleteItem(item: editingItem!) } : nil
                     )
                     .transition(.move(edge: .top).combined(with: .opacity))
                 }
@@ -263,6 +264,8 @@ struct TimelineListView: View {
         withAnimation(.easeOut(duration: 0.2)) {
             modelContext.delete(item)
         }
+        // 关闭编辑器
+        cancelEditor()
     }
 
     private func syncToLifeFlow(item: FlowItem) {
@@ -319,6 +322,7 @@ struct TaskEditorView: View {
 
     let onSave: () -> Void
     let onCancel: () -> Void
+    let onDelete: (() -> Void)?
 
     @Environment(\.modelContext) private var modelContext
     @Query private var allTags: [Tag]
@@ -450,6 +454,19 @@ struct TaskEditorView: View {
 
             // 操作按钮
             HStack {
+                // 删除按钮（仅编辑时显示）
+                if let onDelete = onDelete, !isCreating {
+                    Button(role: .destructive) {
+                        onDelete()
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "trash")
+                            Text("删除")
+                        }
+                    }
+                    .buttonStyle(.plain)
+                }
+
                 Button("取消") {
                     onCancel()
                 }
