@@ -320,19 +320,18 @@ struct TaskEditorView: View {
     let onSave: () -> Void
     let onCancel: () -> Void
 
+    @Environment(\.modelContext) private var modelContext
     @Query private var allTags: [Tag]
     @Query private var allEntities: [Entity]
 
-    @State private var parsedTags: [Tag] = []
-    @State private var parsedEntities: [Entity] = []
+    @State private var parsedTagNames: [String] = []
+    @State private var parsedEntityNames: [String] = []
     @FocusState private var isFocused: Bool
 
-    private var isEditing: Bool { !isCreating }
-
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 12) {
             // 输入框 - 支持 #标签 和 @对象
-            TextField(isCreating ? "添加任务，支持 #标签 @对象" : "编辑任务，支持 #标签 @对象", text: $title)
+            TextField(isCreating ? "添加任务" : "编辑任务", text: $title)
                 .font(.body)
                 .textFieldStyle(.plain)
                 .focused($isFocused)
@@ -343,27 +342,108 @@ struct TaskEditorView: View {
                     onSave()
                 }
 
-            // 解析的标签和对象预览
-            HStack(spacing: 8) {
-                ForEach(parsedTags) { tag in
-                    TagChip(tag: tag)
-                }
-                ForEach(parsedEntities) { entity in
-                    EntityChip(entity: entity)
+            // 当前选中的标签和对象
+            if !tags.isEmpty || !entities.isEmpty {
+                FlowFlowLayout(spacing: 6) {
+                    ForEach(tags) { tag in
+                        SelectedTagChip(tag: tag) {
+                            removeTag(tag)
+                        }
+                    }
+                    ForEach(entities) { entity in
+                        SelectedEntityChip(entity: entity) {
+                            removeEntity(entity)
+                        }
+                    }
                 }
             }
 
-            // 同步选项（仅创建时显示）
-            if showSyncOption {
-                Toggle(isOn: $syncToLife) {
-                    HStack(spacing: 4) {
-                        Image(systemName: "heart.fill")
-                            .foregroundColor(.orange)
-                        Text("同步到生活流")
+            // 解析到的标签（可点击添加）
+            let newTagNames = parsedTagNames.filter { name in
+                !tags.contains(where: { $0.name == name })
+            }
+            let newEntityNames = parsedEntityNames.filter { name in
+                !entities.contains(where: { $0.name == name })
+            }
+
+            if !newTagNames.isEmpty || !newEntityNames.isEmpty {
+                HStack(spacing: 8) {
+                    Text("发现:")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+
+                    ForEach(newTagNames, id: \.self) { name in
+                        Button {
+                            addTag(name: name)
+                        } label: {
+                            Text("#\(name)")
+                                .font(.caption)
+                                .foregroundColor(.blue)
+                        }
+                        .buttonStyle(.plain)
+                    }
+
+                    ForEach(newEntityNames, id: \.self) { name in
+                        Button {
+                            addEntity(name: name)
+                        } label: {
+                            Text("@\(name)")
+                                .font(.caption)
+                                .foregroundColor(.blue)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+
+            // 快速添加已有标签/对象
+            HStack(spacing: 12) {
+                // 标签菜单
+                if !availableTags.isEmpty {
+                    Menu {
+                        ForEach(availableTags) { tag in
+                            Button {
+                                addTagObject(tag)
+                            } label: {
+                                Label(tag.name, systemImage: "tag")
+                            }
+                        }
+                    } label: {
+                        Label("标签", systemImage: "tag")
                             .font(.caption)
                     }
                 }
-                .padding(.top, 4)
+
+                // 对象菜单
+                if !availableEntities.isEmpty {
+                    Menu {
+                        ForEach(availableEntities) { entity in
+                            Button {
+                                addEntityObject(entity)
+                            } label: {
+                                Label(entity.name, systemImage: "person")
+                            }
+                        }
+                    } label: {
+                        Label("对象", systemImage: "person")
+                            .font(.caption)
+                    }
+                }
+
+                Spacer()
+
+                // 同步选项（仅创建时显示）
+                if showSyncOption {
+                    Toggle(isOn: $syncToLife) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "heart.fill")
+                                .foregroundColor(.orange)
+                            Text("同步")
+                                .font(.caption)
+                        }
+                    }
+                    .toggleStyle(.button)
+                }
             }
 
             Divider()
@@ -394,23 +474,30 @@ struct TaskEditorView: View {
         }
     }
 
+    // 可选的标签（未选中的）
+    private var availableTags: [Tag] {
+        allTags.filter { tag in !tags.contains(where: { $0.id == tag.id }) }
+    }
+
+    // 可选的对象（未选中的）
+    private var availableEntities: [Entity] {
+        allEntities.filter { entity in !entities.contains(where: { $0.id == entity.id }) }
+    }
+
+    // 解析输入中的 #标签 和 @对象
     private func parseInput(_ text: String) {
         let tagPattern = "#(\\w+)"
         let entityPattern = "@(\\w+)"
 
-        var foundTags: [Tag] = []
-        var foundEntities: [Entity] = []
+        var foundTagNames: [String] = []
+        var foundEntityNames: [String] = []
 
-        // 使用正则匹配
         if let regex = try? NSRegularExpression(pattern: tagPattern) {
             let range = NSRange(text.startIndex..., in: text)
             let matches = regex.matches(in: text, range: range)
             for match in matches {
                 if let tagRange = Range(match.range(at: 1), in: text) {
-                    let tagName = String(text[tagRange])
-                    if let tag = allTags.first(where: { $0.name == tagName }) {
-                        foundTags.append(tag)
-                    }
+                    foundTagNames.append(String(text[tagRange]))
                 }
             }
         }
@@ -420,16 +507,128 @@ struct TaskEditorView: View {
             let matches = regex.matches(in: text, range: range)
             for match in matches {
                 if let entityRange = Range(match.range(at: 1), in: text) {
-                    let entityName = String(text[entityRange])
-                    if let entity = allEntities.first(where: { $0.name == entityName }) {
-                        foundEntities.append(entity)
-                    }
+                    foundEntityNames.append(String(text[entityRange]))
                 }
             }
         }
 
-        parsedTags = foundTags
-        parsedEntities = foundEntities
+        parsedTagNames = foundTagNames
+        parsedEntityNames = foundEntityNames
+    }
+
+    // 添加标签（从名称创建或匹配）
+    private func addTag(name: String) {
+        if let tag = allTags.first(where: { $0.name == name }) {
+            if !tags.contains(where: { $0.id == tag.id }) {
+                tags.append(tag)
+            }
+        } else {
+            // 创建新标签
+            let newTag = Tag(name: name)
+            modelContext.insert(newTag)
+            tags.append(newTag)
+        }
+    }
+
+    // 添加对象（从名称创建或匹配）
+    private func addEntity(name: String) {
+        if let entity = allEntities.first(where: { $0.name == name }) {
+            if !entities.contains(where: { $0.id == entity.id }) {
+                entities.append(entity)
+            }
+        } else {
+            // 创建新对象
+            let newEntity = Entity(name: name, type: .person, emoji: "👤")
+            modelContext.insert(newEntity)
+            entities.append(newEntity)
+        }
+    }
+
+    // 从对象添加（已有标签）
+    private func addTagObject(_ tag: Tag) {
+        if !tags.contains(where: { $0.id == tag.id }) {
+            tags.append(tag)
+        }
+    }
+
+    // 从对象添加（已有对象）
+    private func addEntityObject(_ entity: Entity) {
+        if !entities.contains(where: { $0.id == entity.id }) {
+            entities.append(entity)
+        }
+    }
+
+    // 移除标签
+    private func removeTag(_ tag: Tag) {
+        tags.removeAll { $0.id == tag.id }
+    }
+
+    // 移除对象
+    private func removeEntity(_ entity: Entity) {
+        entities.removeAll { $0.id == entity.id }
+    }
+}
+
+// MARK: - 已选中的标签 Chip（可删除）
+
+struct SelectedTagChip: View {
+    let tag: Tag
+    let onRemove: () -> Void
+
+    var body: some View {
+        HStack(spacing: 4) {
+            Circle()
+                .fill(Color(hex: tag.color))
+                .frame(width: 6, height: 6)
+
+            Text(tag.name)
+                .font(.caption)
+                .foregroundColor(Color(hex: tag.color))
+
+            Button {
+                onRemove()
+            } label: {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.caption2)
+                    .foregroundColor(Color(hex: tag.color).opacity(0.6))
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        .background(Color(hex: tag.color).opacity(0.15))
+        .clipShape(Capsule())
+    }
+}
+
+// MARK: - 已选中的对象 Chip（可删除）
+
+struct SelectedEntityChip: View {
+    let entity: Entity
+    let onRemove: () -> Void
+
+    var body: some View {
+        HStack(spacing: 4) {
+            Text(entity.emoji)
+                .font(.caption)
+
+            Text(entity.name)
+                .font(.caption)
+                .foregroundColor(.primary)
+
+            Button {
+                onRemove()
+            } label: {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        .background(Color(.systemGray6))
+        .clipShape(Capsule())
     }
 }
 
