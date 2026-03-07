@@ -454,6 +454,14 @@ struct TaskEditorView: View {
 
             // 操作按钮
             HStack {
+                Button("取消") {
+                    onCancel()
+                }
+                .buttonStyle(.plain)
+                .foregroundColor(.secondary)
+
+                Spacer()
+
                 // 删除按钮（仅编辑时显示）
                 if let onDelete = onDelete, !isCreating {
                     Button(role: .destructive) {
@@ -464,16 +472,9 @@ struct TaskEditorView: View {
                             Text("删除")
                         }
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.bordered)
+                    .tint(.red)
                 }
-
-                Button("取消") {
-                    onCancel()
-                }
-                .buttonStyle(.plain)
-                .foregroundColor(.secondary)
-
-                Spacer()
 
                 Button("保存") {
                     onSave()
