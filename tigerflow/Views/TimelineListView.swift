@@ -486,8 +486,9 @@ struct TaskEditorView: View {
 
     // 解析输入中的 #标签 和 @对象
     private func parseInput(_ text: String) {
-        let tagPattern = "#(\\w+)"
-        let entityPattern = "@(\\w+)"
+        // 支持中英文标签：#后面跟非空白字符
+        let tagPattern = "#(\\S+)"
+        let entityPattern = "@(\\S+)"
 
         var foundTagNames: [String] = []
         var foundEntityNames: [String] = []
