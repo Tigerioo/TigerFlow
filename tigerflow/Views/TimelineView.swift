@@ -278,14 +278,6 @@ struct DaySection: View {
                                 onEdit: { onEdit?(item) }
                             )
                         }
-
-                        // 添加连接线（除了最后一个）
-                        if index < items.count - 1 {
-                            Rectangle()
-                                .fill(Color.secondary.opacity(0.2))
-                                .frame(width: 2)
-                                .padding(.leading, 41) // 与checkbox对齐
-                        }
                     }
                 }
                 .padding(.leading, 8)
