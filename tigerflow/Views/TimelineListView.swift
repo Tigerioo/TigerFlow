@@ -16,6 +16,7 @@ struct TimelineListView: View {
 
     @Bindable var appState: AppState
     @State private var isCreating: Bool = false
+    @State private var editingItem: FlowItem? = nil
 
     /// 是否显示同步到生活流的选项
     @State private var syncToLife: Bool = true
@@ -48,7 +49,13 @@ struct TimelineListView: View {
     var body: some View {
         ZStack(alignment: .top) {
             // Timeline 内容
-            TimelineView(items: items, flowType: flowType)
+            TimelineView(
+                items: items,
+                flowType: flowType,
+                onEditItem: { item in
+                    editingItem = item
+                }
+            )
 
             // 内联创建（激活时）
             if isCreating {
@@ -75,6 +82,11 @@ struct TimelineListView: View {
 
             ToolbarItem(placement: .automatic) {
                 sortMenu
+            }
+        }
+        .sheet(item: $editingItem) { item in
+            ItemEditView(item: item) {
+                editingItem = nil
             }
         }
     }

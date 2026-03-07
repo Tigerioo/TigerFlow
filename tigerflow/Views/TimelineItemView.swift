@@ -14,6 +14,7 @@ struct TimelineItemView: View {
     let showCheckbox: Bool
     var isFirstOfDay: Bool = false  // 是否是每天第一条
     var isLastOfDay: Bool = false   // 是否是每天最后一条
+    var onEdit: ((FlowItem) -> Void)? = nil  // 编辑回调
 
     @Environment(\.modelContext) private var modelContext
     @State private var isHovering: Bool = false
@@ -92,6 +93,9 @@ struct TimelineItemView: View {
             withAnimation(.easeInOut(duration: 0.15)) {
                 isHovering = hovering
             }
+        }
+        .onTapGesture {
+            onEdit?(item)
         }
         .contextMenu {
             itemContextMenu

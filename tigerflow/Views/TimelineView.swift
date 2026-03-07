@@ -12,6 +12,7 @@ import SwiftData
 struct TimelineView: View {
     let items: [FlowItem]
     let flowType: FlowType
+    var onEditItem: ((FlowItem) -> Void)? = nil
 
     var body: some View {
         ScrollView {
@@ -96,6 +97,7 @@ struct MonthSection: View {
     let month: String
     let monthGroups: [Date: [FlowItem]]
     let flowType: FlowType
+    var onEditItem: ((FlowItem) -> Void)? = nil
 
     private var displayMonth: String {
         let components = month.split(separator: "-")
@@ -122,7 +124,8 @@ struct MonthSection: View {
                 DaySection(
                     date: day,
                     items: dayItems,
-                    flowType: flowType
+                    flowType: flowType,
+                    onEditItem: onEditItem
                 )
             }
         }
@@ -135,6 +138,7 @@ struct DaySection: View {
     let date: Date
     let items: [FlowItem]
     let flowType: FlowType
+    var onEditItem: ((FlowItem) -> Void)? = nil
 
     @State private var isExpanded: Bool = true
 
@@ -230,7 +234,8 @@ struct DaySection: View {
                             item: item,
                             showCheckbox: flowType.showCheckbox,
                             isFirstOfDay: index == 0,
-                            isLastOfDay: index == items.count - 1
+                            isLastOfDay: index == items.count - 1,
+                            onEdit: onEditItem.map { $0 }
                         )
 
                         // 添加连接线（除了最后一个）
