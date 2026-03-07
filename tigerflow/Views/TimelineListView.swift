@@ -18,8 +18,16 @@ struct TimelineListView: View {
     @State private var isCreating: Bool = false
     @State private var editingItem: FlowItem? = nil
 
-    /// 是否显示同步到生活流的选项
-    @State private var syncToLife: Bool = true
+    // 行内编辑状态
+    @State private var editingTitle: String = ""
+    @State private var editingTags: [Tag] = []
+    @State private var editingEntities: [Entity] = []
+
+    /// 是否显示同步到生活流的选项（默认关闭）
+    @State private var syncToLife: Bool = false
+
+    @Query private var allTags: [Tag]
+    @Query private var allEntities: [Entity]
 
     private var items: [FlowItem] {
         // 根据 FlowType 过滤
@@ -52,9 +60,10 @@ struct TimelineListView: View {
             TimelineView(
                 items: items,
                 flowType: flowType,
-                onEditItem: { item in
-                    editingItem = item
-                }
+                onToggleComplete: toggleComplete,
+                onEdit: startInlineEdit,
+                onSaveToLife: saveToLife,
+                onDelete: deleteItem
             )
 
             // 内联创建（激活时）
@@ -84,9 +93,53 @@ struct TimelineListView: View {
                 sortMenu
             }
         }
-        .sheet(item: $editingItem) { item in
-            ItemEditView(item: item) {
-                editingItem = nil
+        .overlay(alignment: .top) {
+            ZStack(alignment: .top) {
+                // 阻塞层 - 防止点击穿透（创建模式）
+                if isCreating {
+                    Color.black.opacity(0.001)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .onTapGesture {
+                            // 阻止点击穿透
+                        }
+                }
+
+                // 内联创建视图
+                if isCreating {
+                    InlineEditorView(
+                        flowType: flowType,
+                        showSyncOption: flowType == .task,
+                        syncToLife: $syncToLife,
+                        onSave: saveItem,
+                        onCancel: cancelCreate
+                    )
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                }
+            }
+        }
+        .overlay(alignment: .top) {
+            ZStack(alignment: .top) {
+                // 阻塞层 - 防止点击穿透（编辑模式）
+                if editingItem != nil {
+                    Color.black.opacity(0.001)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .onTapGesture {
+                            // 阻止点击穿透
+                        }
+                }
+
+                // 编辑视图
+                if let item = editingItem {
+                    SimpleInlineEditView(
+                        item: item,
+                        title: $editingTitle,
+                        allTags: allTags,
+                        allEntities: allEntities,
+                        onSave: saveInlineEdit,
+                        onCancel: cancelInlineEdit
+                    )
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                }
             }
         }
     }
@@ -171,6 +224,97 @@ struct TimelineListView: View {
         }
 
         cancelCreate()
+    }
+
+    // MARK: - 行内编辑操作
+
+    private func startInlineEdit(item: FlowItem) {
+        editingItem = item
+        editingTitle = item.title
+        editingTags = item.tags
+        editingEntities = item.entities
+    }
+
+    private func cancelInlineEdit() {
+        withAnimation {
+            editingItem = nil
+            editingTitle = ""
+            editingTags = []
+            editingEntities = []
+        }
+    }
+
+    private func saveInlineEdit() {
+        guard let item = editingItem else {
+            cancelInlineEdit()
+            return
+        }
+
+        let cleanTitle = editingTitle
+            .replacingOccurrences(of: "#\\w+", with: "", options: .regularExpression)
+            .replacingOccurrences(of: "@\\w+", with: "", options: .regularExpression)
+            .trimmingCharacters(in: .whitespaces)
+            .replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
+
+        guard !cleanTitle.isEmpty else {
+            cancelInlineEdit()
+            return
+        }
+
+        withAnimation {
+            item.title = cleanTitle
+            item.tags = editingTags
+            item.entities = editingEntities
+            item.updatedAt = Date()
+
+            // 增加使用次数
+            for tag in editingTags {
+                tag.usageCount += 1
+            }
+            for entity in editingEntities {
+                entity.usageCount += 1
+            }
+        }
+
+        cancelInlineEdit()
+    }
+
+    // MARK: - 任务操作
+
+    private func toggleComplete(item: FlowItem) {
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+            item.status = item.isCompleted ? .pending : .completed
+            item.updatedAt = Date()
+        }
+    }
+
+    private func saveToLife(item: FlowItem) {
+        withAnimation {
+            let lifeFlow = getOrCreateFlow(for: .life)
+
+            let lifeItem = FlowItem(
+                title: item.title,
+                content: item.content,
+                occurredAt: Date(),
+                isFromTaskSync: true,
+                sourceItemId: item.id,
+                flow: lifeFlow,
+                domain: item.domain,
+                isMemorable: item.isMemorable
+            )
+
+            // 复制标签和对象
+            lifeItem.tags = item.tags
+            lifeItem.entities = item.entities
+
+            modelContext.insert(lifeItem)
+        }
+    }
+
+    private func deleteItem(item: FlowItem) {
+        withAnimation(.easeOut(duration: 0.2)) {
+            modelContext.delete(item)
+        }
     }
 
     /// 同步到生活流
@@ -310,6 +454,129 @@ struct InlineEditorView: View {
         }
 
         onSave(cleanTitle, content.isEmpty ? nil : content, parsedTags, parsedEntities)
+    }
+}
+
+// MARK: - 简单行内编辑视图
+
+struct SimpleInlineEditView: View {
+    let item: FlowItem
+    @Binding var title: String
+    let allTags: [Tag]
+    let allEntities: [Entity]
+    let onSave: () -> Void
+    let onCancel: () -> Void
+
+    @State private var parsedTags: [Tag] = []
+    @State private var parsedEntities: [Entity] = []
+    @FocusState private var isFocused: Bool
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            // 输入框 - 支持 #标签 和 @对象
+            TextField("编辑任务，支持 #标签 @对象", text: $title)
+                .font(.body)
+                .textFieldStyle(.plain)
+                .focused($isFocused)
+                .onChange(of: title) { _, newValue in
+                    parseInput(newValue)
+                }
+                .onSubmit {
+                    onSave()
+                }
+
+            // 解析的标签和对象预览
+            HStack(spacing: 8) {
+                ForEach(parsedTags) { tag in
+                    TagChip(tag: tag)
+                }
+                ForEach(parsedEntities) { entity in
+                    EntityChip(entity: entity)
+                }
+            }
+
+            // 已有标签快速添加
+            if !item.tags.isEmpty || !item.entities.isEmpty {
+                HStack(spacing: 6) {
+                    Text("已有:")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    ForEach(item.tags) { tag in
+                        TagChip(tag: tag)
+                    }
+                    ForEach(item.entities) { entity in
+                        EntityChip(entity: entity)
+                    }
+                }
+                .padding(.top, 4)
+            }
+
+            Divider()
+
+            // 操作按钮
+            HStack {
+                Button("取消") {
+                    onCancel()
+                }
+                .buttonStyle(.plain)
+                .foregroundColor(.secondary)
+
+                Spacer()
+
+                Button("保存") {
+                    onSave()
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(title.trimmingCharacters(in: .whitespaces).isEmpty)
+            }
+        }
+        .padding()
+        .background(Color(.systemBackground))
+        .shadow(color: .black.opacity(0.15), radius: 8, y: 4)
+        .onAppear {
+            isFocused = true
+            // 初始化解析
+            parseInput(title)
+        }
+    }
+
+    private func parseInput(_ text: String) {
+        // 简单的解析：从文本中提取 #标签 和 @对象
+        let tagPattern = "#(\\w+)"
+        let entityPattern = "@(\\w+)"
+
+        var foundTags: [Tag] = []
+        var foundEntities: [Entity] = []
+
+        // 使用正则匹配
+        if let regex = try? NSRegularExpression(pattern: tagPattern) {
+            let range = NSRange(text.startIndex..., in: text)
+            let matches = regex.matches(in: text, range: range)
+            for match in matches {
+                if let tagRange = Range(match.range(at: 1), in: text) {
+                    let tagName = String(text[tagRange])
+                    if let tag = allTags.first(where: { $0.name == tagName }) {
+                        foundTags.append(tag)
+                    }
+                }
+            }
+        }
+
+        if let regex = try? NSRegularExpression(pattern: entityPattern) {
+            let range = NSRange(text.startIndex..., in: text)
+            let matches = regex.matches(in: text, range: range)
+            for match in matches {
+                if let entityRange = Range(match.range(at: 1), in: text) {
+                    let entityName = String(text[entityRange])
+                    if let entity = allEntities.first(where: { $0.name == entityName }) {
+                        foundEntities.append(entity)
+                    }
+                }
+            }
+        }
+
+        parsedTags = foundTags
+        parsedEntities = foundEntities
     }
 }
 

@@ -12,9 +12,14 @@ import SwiftData
 struct TimelineItemView: View {
     let item: FlowItem
     let showCheckbox: Bool
-    var isFirstOfDay: Bool = false  // 是否是每天第一条
-    var isLastOfDay: Bool = false   // 是否是每天最后一条
-    var onEdit: ((FlowItem) -> Void)? = nil  // 编辑回调
+    var isFirstOfDay: Bool = false
+    var isLastOfDay: Bool = false
+
+    // 回调
+    var onToggleComplete: (() -> Void)? = nil
+    var onEdit: (() -> Void)? = nil
+    var onSaveToLife: (() -> Void)? = nil
+    var onDelete: (() -> Void)? = nil
 
     @Environment(\.modelContext) private var modelContext
     @State private var isHovering: Bool = false
@@ -41,19 +46,11 @@ struct TimelineItemView: View {
 
                     Spacer()
 
-                    // 优先级和纪念标识
-                    HStack(spacing: 6) {
-                        if item.isMemorable {
-                            Image(systemName: "star.fill")
-                                .font(.caption)
-                                .foregroundColor(.yellow)
-                        }
-
-                        if item.priority != .medium && !item.isCompleted {
-                            Image(systemName: item.priority.icon)
-                                .font(.caption2)
-                                .foregroundColor(priorityColor)
-                        }
+                    // 纪念标识
+                    if item.isMemorable {
+                        Image(systemName: "star.fill")
+                            .font(.caption)
+                            .foregroundColor(.yellow)
                     }
                 }
 
@@ -94,11 +91,9 @@ struct TimelineItemView: View {
                 isHovering = hovering
             }
         }
+        // 点击触发行内编辑
         .onTapGesture {
-            onEdit?(item)
-        }
-        .contextMenu {
-            itemContextMenu
+            onEdit?()
         }
     }
 
@@ -108,7 +103,7 @@ struct TimelineItemView: View {
     private var checkboxView: some View {
         if showCheckbox {
             Button {
-                toggleComplete()
+                onToggleComplete?()
             } label: {
                 ZStack {
                     // 圆角矩形边框
@@ -149,152 +144,46 @@ struct TimelineItemView: View {
         formatter.dateFormat = "HH:mm"
         return formatter
     }
+}
 
-    // MARK: - 优先级颜色
+// MARK: - Swipe Actions
 
-    private var priorityColor: Color {
-        switch item.priority {
-        case .low:
-            return .secondary
-        case .medium:
-            return .primary
-        case .high:
-            return .red
-        }
-    }
-
-    // MARK: - 上下文菜单
-
+extension TimelineItemView {
+    /// 任务流的滑动操作（左滑）
     @ViewBuilder
-    private var itemContextMenu: some View {
-        if showCheckbox {
-            Button {
-                toggleComplete()
-            } label: {
-                Label(item.isCompleted ? "标记为未完成" : "标记为完成",
-                      systemImage: item.isCompleted ? "circle" : "checkmark.circle")
+    func taskSwipeActions() -> some View {
+        HStack(spacing:0) {
+            // 左侧：存生活流
+            if let onSaveToLife = onSaveToLife {
+                Button(action: onSaveToLife) {
+                    VStack(spacing: 4) {
+                        Image(systemName: "heart.fill")
+                            .font(.title3)
+                        Text("存生活流")
+                            .font(.caption)
+                    }
+                    .foregroundColor(.orange)
+                    .frame(maxWidth: .infinity)
+                    .background(Color.orange.opacity(0.15))
+                }
+                .buttonStyle(.plain)
             }
 
-            // 优先级子菜单
-            Menu {
-                Button {
-                    setPriority(.high)
-                } label: {
-                    Label("高", systemImage: item.priority == .high ? "checkmark" : "")
+            // 右侧：删除
+            if let onDelete = onDelete {
+                Button(action: onDelete) {
+                    VStack(spacing: 4) {
+                        Image(systemName: "trash.fill")
+                            .font(.title3)
+                        Text("删除")
+                            .font(.caption)
+                    }
+                    .foregroundColor(.red)
+                    .frame(maxWidth: .infinity)
+                    .background(Color.red.opacity(0.15))
                 }
-                Button {
-                    setPriority(.medium)
-                } label: {
-                    Label("中", systemImage: item.priority == .medium ? "checkmark" : "")
-                }
-                Button {
-                    setPriority(.low)
-                } label: {
-                    Label("低", systemImage: item.priority == .low ? "checkmark" : "")
-                }
-            } label: {
-                Label("优先级", systemImage: item.priority.icon)
+                .buttonStyle(.plain)
             }
-
-            Divider()
-        }
-
-        Button {
-            item.isMemorable.toggle()
-        } label: {
-            Label(item.isMemorable ? "取消纪念" : "标记为纪念",
-                  systemImage: item.isMemorable ? "star" : "star.fill")
-        }
-
-        if item.flowType == .task || item.flowType == .life {
-            Divider()
-
-            Button {
-                promoteToEvent()
-            } label: {
-                Label("升级为事件", systemImage: "arrow.up.circle")
-            }
-        }
-
-        Divider()
-
-        Button {
-            // 编辑
-        } label: {
-            Label("编辑", systemImage: "pencil")
-        }
-
-        Button(role: .destructive) {
-            deleteItem()
-        } label: {
-            Label("删除", systemImage: "trash")
-        }
-    }
-
-    // MARK: - 操作
-
-    private func toggleComplete() {
-        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-            item.status = item.isCompleted ? .pending : .completed
-            item.updatedAt = Date()
-        }
-    }
-
-    private func setPriority(_ priority: FlowItemPriority) {
-        withAnimation {
-            item.priority = priority
-            item.updatedAt = Date()
-        }
-    }
-
-    private func promoteToEvent() {
-        withAnimation {
-            let eventFlow = getOrCreateEventFlow()
-
-            let eventItem = FlowItem(
-                title: item.title,
-                content: item.content,
-                occurredAt: Date(),
-                sourceItemId: item.id,
-                flow: eventFlow,
-                domain: item.domain,
-                isMemorable: true
-            )
-
-            eventItem.tags = item.tags
-            eventItem.entities = item.entities
-
-            item.status = .completed
-            item.updatedAt = Date()
-
-            modelContext.insert(eventItem)
-        }
-    }
-
-    private func getOrCreateEventFlow() -> Flow {
-        let descriptor = FetchDescriptor<Flow>(
-            sortBy: [SortDescriptor(\.sortOrder)]
-        )
-
-        let allFlows = (try? modelContext.fetch(descriptor)) ?? []
-        if let eventFlow = allFlows.first(where: { $0.type == .event }) {
-            return eventFlow
-        }
-
-        let newFlow = Flow(
-            name: "事件流",
-            type: .event,
-            icon: "star.fill",
-            color: "#FFCC00",
-            sortOrder: 2
-        )
-        modelContext.insert(newFlow)
-        return newFlow
-    }
-
-    private func deleteItem() {
-        withAnimation(.easeOut(duration: 0.2)) {
-            modelContext.delete(item)
         }
     }
 }
@@ -307,7 +196,10 @@ struct TimelineItemView: View {
             item: FlowItem(title: "完成项目提案", content: "这是任务内容"),
             showCheckbox: true,
             isFirstOfDay: true,
-            isLastOfDay: false
+            isLastOfDay: false,
+            onToggleComplete: {},
+            onSaveToLife: {},
+            onDelete: {}
         )
 
         Divider()

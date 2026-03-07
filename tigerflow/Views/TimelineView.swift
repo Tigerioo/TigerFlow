@@ -12,7 +12,12 @@ import SwiftData
 struct TimelineView: View {
     let items: [FlowItem]
     let flowType: FlowType
-    var onEditItem: ((FlowItem) -> Void)? = nil
+
+    // 回调
+    var onToggleComplete: ((FlowItem) -> Void)? = nil
+    var onEdit: ((FlowItem) -> Void)? = nil
+    var onSaveToLife: ((FlowItem) -> Void)? = nil
+    var onDelete: ((FlowItem) -> Void)? = nil
 
     var body: some View {
         ScrollView {
@@ -27,7 +32,15 @@ struct TimelineView: View {
                         let monthGroups = yearGroups[month] ?? [:]
 
                         // 月份分组
-                        MonthSection(month: month, monthGroups: monthGroups, flowType: flowType)
+                        MonthSection(
+                            month: month,
+                            monthGroups: monthGroups,
+                            flowType: flowType,
+                            onToggleComplete: onToggleComplete,
+                            onEdit: onEdit,
+                            onSaveToLife: onSaveToLife,
+                            onDelete: onDelete
+                        )
                     }
                 }
 
@@ -97,7 +110,12 @@ struct MonthSection: View {
     let month: String
     let monthGroups: [Date: [FlowItem]]
     let flowType: FlowType
-    var onEditItem: ((FlowItem) -> Void)? = nil
+
+    // 回调
+    var onToggleComplete: ((FlowItem) -> Void)? = nil
+    var onEdit: ((FlowItem) -> Void)? = nil
+    var onSaveToLife: ((FlowItem) -> Void)? = nil
+    var onDelete: ((FlowItem) -> Void)? = nil
 
     private var displayMonth: String {
         let components = month.split(separator: "-")
@@ -125,7 +143,10 @@ struct MonthSection: View {
                     date: day,
                     items: dayItems,
                     flowType: flowType,
-                    onEditItem: onEditItem
+                    onToggleComplete: onToggleComplete,
+                    onEdit: onEdit,
+                    onSaveToLife: onSaveToLife,
+                    onDelete: onDelete
                 )
             }
         }
@@ -138,7 +159,12 @@ struct DaySection: View {
     let date: Date
     let items: [FlowItem]
     let flowType: FlowType
-    var onEditItem: ((FlowItem) -> Void)? = nil
+
+    // 回调
+    var onToggleComplete: ((FlowItem) -> Void)? = nil
+    var onEdit: ((FlowItem) -> Void)? = nil
+    var onSaveToLife: ((FlowItem) -> Void)? = nil
+    var onDelete: ((FlowItem) -> Void)? = nil
 
     @State private var isExpanded: Bool = true
 
@@ -162,7 +188,6 @@ struct DaySection: View {
         let calendar = Calendar.current
         let weekday = calendar.component(.weekday, from: date)
         // 转换为中文周几 (1=周日, 2=周一, ..., 7=周六)
-        let weekdays = ["日", "一", "二", "三", "四", "五", "六"]
         return weekday - 1
     }
 
@@ -230,13 +255,53 @@ struct DaySection: View {
             if isExpanded {
                 VStack(spacing: 0) {
                     ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
-                        TimelineItemView(
-                            item: item,
-                            showCheckbox: flowType.showCheckbox,
-                            isFirstOfDay: index == 0,
-                            isLastOfDay: index == items.count - 1,
-                            onEdit: onEditItem.map { $0 }
-                        )
+                        // 任务流添加滑动操作
+                        if flowType == .task {
+                            TimelineItemView(
+                                item: item,
+                                showCheckbox: flowType.showCheckbox,
+                                isFirstOfDay: index == 0,
+                                isLastOfDay: index == items.count - 1,
+                                onToggleComplete: { onToggleComplete?(item) },
+                                onEdit: { onEdit?(item) },
+                                onSaveToLife: { onSaveToLife?(item) },
+                                onDelete: { onDelete?(item) }
+                            )
+                            .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                                // 左侧：存生活流
+                                Button {
+                                    onSaveToLife?(item)
+                                } label: {
+                                    VStack(spacing: 2) {
+                                        Image(systemName: "heart.fill")
+                                        Text("存生活流")
+                                            .font(.caption2)
+                                    }
+                                }
+                                .tint(.orange)
+
+                                // 右侧：删除
+                                Button(role: .destructive) {
+                                    onDelete?(item)
+                                } label: {
+                                    VStack(spacing: 2) {
+                                        Image(systemName: "trash.fill")
+                                        Text("删除")
+                                            .font(.caption2)
+                                    }
+                                }
+                            }
+                        } else {
+                            // 非任务流不添加滑动操作
+                            TimelineItemView(
+                                item: item,
+                                showCheckbox: flowType.showCheckbox,
+                                isFirstOfDay: index == 0,
+                                isLastOfDay: index == items.count - 1,
+                                onToggleComplete: { onToggleComplete?(item) },
+                                onEdit: { onEdit?(item) }
+                            )
+                        }
 
                         // 添加连接线（除了最后一个）
                         if index < items.count - 1 {

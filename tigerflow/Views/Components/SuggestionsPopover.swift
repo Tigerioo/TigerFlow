@@ -118,8 +118,6 @@ struct SuggestionsPopover: View {
 // MARK: - Preview
 
 #Preview {
-    let context = try! ModelContext(ModelContainer(for: Tag.self, Entity.self))
-
     let sampleTags = [
         Tag(name: "工作", color: "#007AFF"),
         Tag(name: "阅读", color: "#34C759"),
