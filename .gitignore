@@ -1,0 +1,57 @@
+# Xcode
+.DS_Store
+build/
+DerivedData/
+*.xcuserstate
+*.xcuserdatad
+xcuserdata/
+*.xcworkspace
+!default.xcworkspace
+
+# Xcode generated
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Swift Package Manager
+.swiftpm/
+Packages/
+Package.resolved
+
+# CocoaPods
+Pods/
+Podfile.lock
+
+# Carthage
+Carthage/Build/
+Carthage/DerivedData
+
+# IDE
+.vscode/
+.idea/
+
+# Claude
+.claude/
+
+# Build intermediates
+*.o
+*.a
+*.dylib
+*.d
+*.dia
+*.swiftdoc
+*.swiftmodule
+
+# Code signing
+*.mobileprovision
+
+# Temporary files
+*.tmp
+*.log
+*.swp
+*~
+
+# Archives
+*.xcarchive
+*.app.dSYM.zip
