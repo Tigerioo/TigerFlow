@@ -21,8 +21,7 @@ struct tigerflowApp: App {
         let modelConfiguration = ModelConfiguration(
             schema: schema,
             isStoredInMemoryOnly: false,
-            allowsSave: true,
-            cloudKitDatabase: .automatic
+            allowsSave: true
         )
 
         do {
