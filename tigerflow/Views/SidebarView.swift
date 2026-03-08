@@ -38,6 +38,22 @@ struct SidebarView: View {
             }
         }
         .searchable(text: $appState.searchText, prompt: "搜索")
+        .safeAreaInset(edge: .bottom) {
+            Button {
+                appState.showingSettings = true
+            } label: {
+                HStack {
+                    Image(systemName: "gearshape")
+                    Text("设置")
+                    Spacer()
+                }
+                .foregroundColor(.secondary)
+            }
+            .buttonStyle(.plain)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .background(.ultraThinMaterial)
+        }
         .onAppear {
             initializeDefaultData()
         }

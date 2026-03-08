@@ -121,6 +121,9 @@ class AppState {
     /// 是否显示筛选面板
     var showingFilters: Bool = false
 
+    /// 是否显示设置页面
+    var showingSettings: Bool = false
+
     // MARK: - 便捷方法
 
     /// 获取当前选中的 FlowType
