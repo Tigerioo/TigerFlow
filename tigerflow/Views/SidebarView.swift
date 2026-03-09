@@ -25,7 +25,7 @@ struct SidebarView: View {
             tagsSection
         }
         .listStyle(.sidebar)
-        .navigationTitle("TigerFlow")
+        .navigationTitle("Tiger时光流")
         .toolbar {
             ToolbarItem(placement: .automatic) {
                 Button {

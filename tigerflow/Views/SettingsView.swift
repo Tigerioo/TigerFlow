@@ -110,7 +110,7 @@ struct SettingsView: View {
                             .foregroundColor(.secondary)
                     }
 
-                    Link(destination: URL(string: "https://tigerflow.app/privacy")!) {
+                    Link(destination: URL(string: "https://www.tsinro.cn/privacy")!) {
                         HStack {
                             Text("隐私政策")
                             Spacer()
@@ -119,7 +119,7 @@ struct SettingsView: View {
                         }
                     }
 
-                    Link(destination: URL(string: "https://tigerflow.app/terms")!) {
+                    Link(destination: URL(string: "https://www.tsinro.cn/terms")!) {
                         HStack {
                             Text("服务条款")
                             Spacer()
