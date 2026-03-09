@@ -26,9 +26,6 @@ struct ContentView: View {
             detailView
         }
         .navigationSplitViewStyle(.balanced)
-        .sheet(isPresented: $appState.showingSettings) {
-            SettingsView()
-        }
     }
 
     // MARK: - 内容区
