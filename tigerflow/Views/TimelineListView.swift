@@ -7,7 +7,9 @@
 
 import SwiftUI
 import SwiftData
+#if os(macOS)
 import AppKit
+#endif
 
 struct TimelineListView: View {
     let flowType: FlowType
@@ -526,7 +528,11 @@ struct TaskEditorView: View {
             }
         }
         .padding()
+        #if os(macOS)
         .background(Color(nsColor: .windowBackgroundColor))
+        #else
+        .background(Color(.systemBackground))
+        #endif
         .shadow(color: .black.opacity(0.15), radius: 8, y: 4)
         .onAppear {
             isFocused = true

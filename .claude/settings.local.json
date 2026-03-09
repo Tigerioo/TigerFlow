@@ -13,7 +13,13 @@
       "Bash(xcodebuild -scheme tigerflow -configuration Debug -destination 'platform=iOS Simulator,name=iPhone 17' build)",
       "Bash(git add tigerflow/Views/TimelineListView.swift)",
       "Bash(git commit:*)",
-      "Bash(git add .gitignore)"
+      "Bash(git add .gitignore)",
+      "Bash(git add -A)",
+      "Bash(git reset HEAD .claude/settings.local.json)",
+      "Bash(xcodebuild -scheme TigerFlow -configuration Debug -destination 'platform=iOS Simulator,name=iPhone 17' build)",
+      "Bash(git add website/)",
+      "Bash(git reset HEAD .claude/settings.local.json TigerFlow.xcodeproj/project.pbxproj)",
+      "Bash(xcodebuild -scheme TigerFlow -configuration Debug -destination 'platform=macOS,name=My Mac' build)"
     ]
   }
 }

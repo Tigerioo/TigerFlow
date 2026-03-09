@@ -24,18 +24,18 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		8A1D60CE2F5AC27A00038B2D /* tigerflow.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = tigerflow.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		8A1D60DF2F5AC27C00038B2D /* tigerflowTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = tigerflowTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		8A1D60E92F5AC27C00038B2D /* tigerflowUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = tigerflowUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		8A1D60CE2F5AC27A00038B2D /* TigerFlow.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TigerFlow.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		8A1D60DF2F5AC27C00038B2D /* TigerFlowTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TigerFlowTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		8A1D60E92F5AC27C00038B2D /* TigerFlowUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TigerFlowUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		8A1D60F12F5AC27C00038B2D /* Exceptions for "tigerflow" folder in "tigerflow" target */ = {
+		8A1D60F12F5AC27C00038B2D /* Exceptions for "tigerflow" folder in "TigerFlow" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
 			);
-			target = 8A1D60CD2F5AC27A00038B2D /* tigerflow */;
+			target = 8A1D60CD2F5AC27A00038B2D /* TigerFlow */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
@@ -43,7 +43,7 @@
 		8A1D60D02F5AC27A00038B2D /* tigerflow */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				8A1D60F12F5AC27C00038B2D /* Exceptions for "tigerflow" folder in "tigerflow" target */,
+				8A1D60F12F5AC27C00038B2D /* Exceptions for "tigerflow" folder in "TigerFlow" target */,
 			);
 			path = tigerflow;
 			sourceTree = "<group>";
@@ -98,9 +98,9 @@
 		8A1D60CF2F5AC27A00038B2D /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				8A1D60CE2F5AC27A00038B2D /* tigerflow.app */,
-				8A1D60DF2F5AC27C00038B2D /* tigerflowTests.xctest */,
-				8A1D60E92F5AC27C00038B2D /* tigerflowUITests.xctest */,
+				8A1D60CE2F5AC27A00038B2D /* TigerFlow.app */,
+				8A1D60DF2F5AC27C00038B2D /* TigerFlowTests.xctest */,
+				8A1D60E92F5AC27C00038B2D /* TigerFlowUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -108,9 +108,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		8A1D60CD2F5AC27A00038B2D /* tigerflow */ = {
+		8A1D60CD2F5AC27A00038B2D /* TigerFlow */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 8A1D60F22F5AC27C00038B2D /* Build configuration list for PBXNativeTarget "tigerflow" */;
+			buildConfigurationList = 8A1D60F22F5AC27C00038B2D /* Build configuration list for PBXNativeTarget "TigerFlow" */;
 			buildPhases = (
 				8A1D60CA2F5AC27A00038B2D /* Sources */,
 				8A1D60CB2F5AC27A00038B2D /* Frameworks */,
@@ -123,16 +123,16 @@
 			fileSystemSynchronizedGroups = (
 				8A1D60D02F5AC27A00038B2D /* tigerflow */,
 			);
-			name = tigerflow;
+			name = TigerFlow;
 			packageProductDependencies = (
 			);
 			productName = tigerflow;
-			productReference = 8A1D60CE2F5AC27A00038B2D /* tigerflow.app */;
+			productReference = 8A1D60CE2F5AC27A00038B2D /* TigerFlow.app */;
 			productType = "com.apple.product-type.application";
 		};
-		8A1D60DE2F5AC27C00038B2D /* tigerflowTests */ = {
+		8A1D60DE2F5AC27C00038B2D /* TigerFlowTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 8A1D60F72F5AC27C00038B2D /* Build configuration list for PBXNativeTarget "tigerflowTests" */;
+			buildConfigurationList = 8A1D60F72F5AC27C00038B2D /* Build configuration list for PBXNativeTarget "TigerFlowTests" */;
 			buildPhases = (
 				8A1D60DB2F5AC27C00038B2D /* Sources */,
 				8A1D60DC2F5AC27C00038B2D /* Frameworks */,
@@ -146,16 +146,16 @@
 			fileSystemSynchronizedGroups = (
 				8A1D60E22F5AC27C00038B2D /* tigerflowTests */,
 			);
-			name = tigerflowTests;
+			name = TigerFlowTests;
 			packageProductDependencies = (
 			);
 			productName = tigerflowTests;
-			productReference = 8A1D60DF2F5AC27C00038B2D /* tigerflowTests.xctest */;
+			productReference = 8A1D60DF2F5AC27C00038B2D /* TigerFlowTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		8A1D60E82F5AC27C00038B2D /* tigerflowUITests */ = {
+		8A1D60E82F5AC27C00038B2D /* TigerFlowUITests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 8A1D60FA2F5AC27C00038B2D /* Build configuration list for PBXNativeTarget "tigerflowUITests" */;
+			buildConfigurationList = 8A1D60FA2F5AC27C00038B2D /* Build configuration list for PBXNativeTarget "TigerFlowUITests" */;
 			buildPhases = (
 				8A1D60E52F5AC27C00038B2D /* Sources */,
 				8A1D60E62F5AC27C00038B2D /* Frameworks */,
@@ -169,11 +169,11 @@
 			fileSystemSynchronizedGroups = (
 				8A1D60EC2F5AC27C00038B2D /* tigerflowUITests */,
 			);
-			name = tigerflowUITests;
+			name = TigerFlowUITests;
 			packageProductDependencies = (
 			);
 			productName = tigerflowUITests;
-			productReference = 8A1D60E92F5AC27C00038B2D /* tigerflowUITests.xctest */;
+			productReference = 8A1D60E92F5AC27C00038B2D /* TigerFlowUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
@@ -199,7 +199,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 8A1D60C92F5AC27A00038B2D /* Build configuration list for PBXProject "tigerflow" */;
+			buildConfigurationList = 8A1D60C92F5AC27A00038B2D /* Build configuration list for PBXProject "TigerFlow" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -213,9 +213,9 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				8A1D60CD2F5AC27A00038B2D /* tigerflow */,
-				8A1D60DE2F5AC27C00038B2D /* tigerflowTests */,
-				8A1D60E82F5AC27C00038B2D /* tigerflowUITests */,
+				8A1D60CD2F5AC27A00038B2D /* TigerFlow */,
+				8A1D60DE2F5AC27C00038B2D /* TigerFlowTests */,
+				8A1D60E82F5AC27C00038B2D /* TigerFlowUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -271,12 +271,12 @@
 /* Begin PBXTargetDependency section */
 		8A1D60E12F5AC27C00038B2D /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 8A1D60CD2F5AC27A00038B2D /* tigerflow */;
+			target = 8A1D60CD2F5AC27A00038B2D /* TigerFlow */;
 			targetProxy = 8A1D60E02F5AC27C00038B2D /* PBXContainerItemProxy */;
 		};
 		8A1D60EB2F5AC27C00038B2D /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 8A1D60CD2F5AC27A00038B2D /* tigerflow */;
+			target = 8A1D60CD2F5AC27A00038B2D /* TigerFlow */;
 			targetProxy = 8A1D60EA2F5AC27C00038B2D /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -287,12 +287,23 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = TigerFlow/TigerFlow.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = AU44GCP7TE;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
+				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = YES;
+				ENABLE_RESOURCE_ACCESS_CAMERA = YES;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = YES;
+				ENABLE_RESOURCE_ACCESS_LOCATION = YES;
+				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
+				ENABLE_RESOURCE_ACCESS_USB = NO;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = tigerflow/Info.plist;
@@ -311,7 +322,7 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 26.2;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.tigerio.tigerflow;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tigerio.flow;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
@@ -332,12 +343,23 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = TigerFlow/TigerFlow.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = AU44GCP7TE;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
+				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = YES;
+				ENABLE_RESOURCE_ACCESS_CAMERA = YES;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = YES;
+				ENABLE_RESOURCE_ACCESS_LOCATION = YES;
+				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
+				ENABLE_RESOURCE_ACCESS_USB = NO;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = tigerflow/Info.plist;
@@ -356,7 +378,7 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 26.2;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.tigerio.tigerflow;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tigerio.flow;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
@@ -509,7 +531,7 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/tigerflow.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/tigerflow";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TigerFlow.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/TigerFlow";
 				XROS_DEPLOYMENT_TARGET = 26.2;
 			};
 			name = Debug;
@@ -535,7 +557,7 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/tigerflow.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/tigerflow";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TigerFlow.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/TigerFlow";
 				XROS_DEPLOYMENT_TARGET = 26.2;
 			};
 			name = Release;
@@ -593,7 +615,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		8A1D60C92F5AC27A00038B2D /* Build configuration list for PBXProject "tigerflow" */ = {
+		8A1D60C92F5AC27A00038B2D /* Build configuration list for PBXProject "TigerFlow" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				8A1D60F52F5AC27C00038B2D /* Debug */,
@@ -602,7 +624,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		8A1D60F22F5AC27C00038B2D /* Build configuration list for PBXNativeTarget "tigerflow" */ = {
+		8A1D60F22F5AC27C00038B2D /* Build configuration list for PBXNativeTarget "TigerFlow" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				8A1D60F32F5AC27C00038B2D /* Debug */,
@@ -611,7 +633,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		8A1D60F72F5AC27C00038B2D /* Build configuration list for PBXNativeTarget "tigerflowTests" */ = {
+		8A1D60F72F5AC27C00038B2D /* Build configuration list for PBXNativeTarget "TigerFlowTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				8A1D60F82F5AC27C00038B2D /* Debug */,
@@ -620,7 +642,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		8A1D60FA2F5AC27C00038B2D /* Build configuration list for PBXNativeTarget "tigerflowUITests" */ = {
+		8A1D60FA2F5AC27C00038B2D /* Build configuration list for PBXNativeTarget "TigerFlowUITests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				8A1D60FB2F5AC27C00038B2D /* Debug */,
