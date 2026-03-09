@@ -138,7 +138,9 @@ struct ItemEditView: View {
                 }
             }
             .navigationTitle("编辑任务")
+            #if !os(macOS)
             .navigationBarTitleDisplayMode(.inline)
+            #endif
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("取消") {

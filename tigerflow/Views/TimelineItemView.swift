@@ -83,7 +83,7 @@ struct TimelineItemView: View {
         .padding(.vertical, 10)
         .background(
             RoundedRectangle(cornerRadius: 8)
-                .fill(isHovering ? Color(.systemGray6) : Color.clear)
+                .fill(isHovering ? Color.gray.opacity(0.2) : Color.clear)
         )
         .contentShape(Rectangle())
         .onHover { hovering in

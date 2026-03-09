@@ -132,9 +132,11 @@ struct SettingsView: View {
                 }
             }
             .navigationTitle("设置")
+            #if !os(macOS)
             .navigationBarTitleDisplayMode(.inline)
+            #endif
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .cancellationAction) {
                     Button("完成") {
                         dismiss()
                     }

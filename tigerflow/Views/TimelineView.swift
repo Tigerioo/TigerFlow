@@ -243,7 +243,7 @@ struct DaySection: View {
             }
             .padding(.leading, 8)
             .padding(.vertical, 8)
-            .background(Color(.systemGray6).opacity(0.5))
+            .background(Color.gray.opacity(0.15))
             .contentShape(Rectangle())
             .onTapGesture {
                 withAnimation(.easeInOut(duration: 0.2)) {

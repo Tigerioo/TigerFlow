@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftData
+import AppKit
 
 struct TimelineListView: View {
     let flowType: FlowType
@@ -525,7 +526,7 @@ struct TaskEditorView: View {
             }
         }
         .padding()
-        .background(Color(.systemBackground))
+        .background(Color(nsColor: .windowBackgroundColor))
         .shadow(color: .black.opacity(0.15), radius: 8, y: 4)
         .onAppear {
             isFocused = true
@@ -687,7 +688,7 @@ struct SelectedEntityChip: View {
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 4)
-        .background(Color(.systemGray6))
+        .background(Color.gray.opacity(0.15))
         .clipShape(Capsule())
     }
 }
