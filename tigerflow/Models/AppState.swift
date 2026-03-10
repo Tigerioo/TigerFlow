@@ -91,7 +91,7 @@ class AppState {
     // MARK: - 导航状态
 
     /// 当前选中的 Sidebar 项目
-    var selectedSidebarItem: SidebarItem? = .flow(.task) {
+    var selectedSidebarItem: SidebarItem? = .flow(.schedule) {
         didSet {
             if selectedSidebarItem != nil {
                 selectedItemId = nil
@@ -144,6 +144,6 @@ class AppState {
 
     /// 选中默认的 Flow
     func selectDefaultFlow() {
-        selectedSidebarItem = .flow(.task)
+        selectedSidebarItem = .flow(.schedule)
     }
 }
