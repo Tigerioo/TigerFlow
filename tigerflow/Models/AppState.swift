@@ -15,6 +15,7 @@ enum SidebarItem: Hashable, Identifiable {
     case domain(UUID)             // 领域
     case person(UUID)             // 人物
     case tag(UUID)                // 标签
+    case oneThing                // OneThing
 
     var id: String {
         switch self {
@@ -28,6 +29,8 @@ enum SidebarItem: Hashable, Identifiable {
             return "person-\(id.uuidString)"
         case .tag(let id):
             return "tag-\(id.uuidString)"
+        case .oneThing:
+            return "onething"
         }
     }
 
@@ -44,6 +47,8 @@ enum SidebarItem: Hashable, Identifiable {
             return "人物"
         case .tag:
             return "标签"
+        case .oneThing:
+            return "OneThing"
         }
     }
 
@@ -60,6 +65,8 @@ enum SidebarItem: Hashable, Identifiable {
             return "person.fill"
         case .tag:
             return "tag.fill"
+        case .oneThing:
+            return "target"
         }
     }
 }

@@ -19,6 +19,9 @@ struct SidebarView: View {
 
     var body: some View {
         List(selection: $appState.selectedSidebarItem) {
+            // OneThing 入口
+            oneThingSection
+
             flowsSection
             domainsSection
             peopleSection
@@ -44,6 +47,20 @@ struct SidebarView: View {
     }
 
     // MARK: - Flows Section
+
+    @ViewBuilder
+    private var oneThingSection: some View {
+        Section("FOCUS") {
+            NavigationLink(value: SidebarItem.oneThing) {
+                HStack {
+                    Text("🎯")
+                        .font(.title3)
+                    Text("OneThing")
+                        .font(.body)
+                }
+            }
+        }
+    }
 
     @ViewBuilder
     private var flowsSection: some View {

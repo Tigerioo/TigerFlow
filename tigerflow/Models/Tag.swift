@@ -30,6 +30,13 @@ final class Tag {
     @Relationship(inverse: \FlowItem.tags)
     var items: [FlowItem]?
 
+    /// 关联的 OneThingProject
+    var oneThingProject: OneThingProject?
+
+    /// 关联的 ProjectTodos
+    @Relationship
+    var projectTodos: [ProjectTodo]?
+
     init(
         id: UUID = UUID(),
         name: String,
@@ -48,6 +55,7 @@ final class Tag {
         self.usageCount = usageCount
         self.createdAt = createdAt
         self.items = []
+        self.projectTodos = []
     }
 
     /// 随机生成一个柔和的颜色

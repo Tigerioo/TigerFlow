@@ -32,7 +32,10 @@ struct ContentView: View {
 
     @ViewBuilder
     private var contentView: some View {
-        if let flowType = appState.currentFlowType {
+        if appState.selectedSidebarItem == .oneThing {
+            // OneThing 视图
+            OneThingQueueView(appState: appState)
+        } else if let flowType = appState.currentFlowType {
             // 使用各模块独立的视图
             switch flowType {
             case .task:
@@ -92,6 +95,9 @@ struct FilteredTimelineView: View {
             items = items.filter { item in
                 item.tags.contains { $0.id == tagId }
             }
+        case .oneThing:
+            // OneThing 是独立的项目系统，不显示在 Timeline 中
+            items = []
         case .none:
             break
         }

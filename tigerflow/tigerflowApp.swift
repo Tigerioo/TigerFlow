@@ -17,6 +17,9 @@ struct tigerflowApp: App {
             Domain.self,
             Tag.self,
             Entity.self,
+            OneThingProject.self,
+            ProjectStage.self,
+            ProjectTodo.self,
         ])
         let modelConfiguration = ModelConfiguration(
             schema: schema,

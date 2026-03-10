@@ -55,6 +55,13 @@ final class Entity {
     @Relationship(inverse: \FlowItem.entities)
     var items: [FlowItem]?
 
+    /// 关联的 OneThingProject
+    var oneThingProject: OneThingProject?
+
+    /// 关联的 ProjectTodos
+    @Relationship
+    var projectTodos: [ProjectTodo]?
+
     init(
         id: UUID = UUID(),
         name: String,
@@ -72,6 +79,7 @@ final class Entity {
         self.usageCount = usageCount
         self.createdAt = createdAt
         self.items = []
+        self.projectTodos = []
     }
 
     /// 根据类型随机生成 emoji
