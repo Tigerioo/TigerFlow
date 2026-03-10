@@ -32,7 +32,6 @@ struct TimelineItemView: View {
         HStack(alignment: .top, spacing: 12) {
             // 1. 复选框
             checkboxView
-                .frame(width: 24, height: 24)
 
             // 2. 时间（仅日程流显示）
             if showTime {
@@ -110,32 +109,32 @@ struct TimelineItemView: View {
     @ViewBuilder
     private var checkboxView: some View {
         if showCheckbox {
-            Button {
-                onToggleComplete?()
-            } label: {
-                ZStack {
-                    // 圆形边框
+            ZStack {
+                // 圆形边框
+                Circle()
+                    .strokeBorder(
+                        item.isCompleted ? themePurple : Color.secondary.opacity(0.5),
+                        lineWidth: 2
+                    )
+
+                // 完成后填充紫色
+                if item.isCompleted {
                     Circle()
-                        .strokeBorder(
-                            item.isCompleted ? themePurple : Color.secondary.opacity(0.5),
-                            lineWidth: 2
-                        )
+                        .fill(themePurple)
+                }
 
-                    // 完成后填充紫色
-                    if item.isCompleted {
-                        Circle()
-                            .fill(themePurple)
-                    }
-
-                    // 勾选图标
-                    if item.isCompleted {
-                        Image(systemName: "checkmark")
-                            .font(.system(size: 12, weight: .bold))
-                            .foregroundColor(.white)
-                    }
+                // 勾选图标
+                if item.isCompleted {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundColor(.white)
                 }
             }
-            .buttonStyle(.plain)
+            .frame(width: 24, height: 24)
+            .contentShape(Circle())
+            .onTapGesture {
+                onToggleComplete?()
+            }
         }
     }
 
