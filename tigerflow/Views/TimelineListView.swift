@@ -542,39 +542,14 @@ struct TaskEditorView: View {
 
                     Spacer()
 
-                    // 快速选择按钮
-                    let quickTimes = [0, 15, 30, 45]
-                    ForEach(quickTimes, id: \.self) { minute in
-                        Button {
-                            var components = Calendar.current.dateComponents([.year, .month, .day], from: Date())
-                            components.hour = 0
-                            components.minute = minute
-                            if let date = Calendar.current.date(from: components) {
-                                selectedTime.wrappedValue = date
-                            }
-                        } label: {
-                            Text(String(format: "%02d:%02d", 0, minute))
-                                .font(.caption)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 4)
-                                .background(
-                                    Calendar.current.component(.minute, from: selectedTime.wrappedValue) == minute
-                                    ? Color.accentColor.opacity(0.2)
-                                    : Color.clear
-                                )
-                                .cornerRadius(4)
-                        }
-                        .buttonStyle(.plain)
-                    }
-
-                    // 精确时间选择
+                    // 时间选择器
                     DatePicker(
                         "",
                         selection: selectedTime,
                         displayedComponents: .hourAndMinute
                     )
                     .labelsHidden()
-                    .frame(width: 80)
+                    .frame(width: 100)
                 }
                 .padding(.vertical, 4)
             }
