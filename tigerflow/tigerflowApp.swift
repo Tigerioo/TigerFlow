@@ -49,8 +49,8 @@ struct tigerflowApp: App {
                 }
                 .keyboardShortcut("n", modifiers: .command)
 
-                Button("新建生活记录") {
-                    NotificationCenter.default.post(name: .createNewItem, object: FlowType.life)
+                Button("新建日程") {
+                    NotificationCenter.default.post(name: .createNewItem, object: FlowType.schedule)
                 }
                 .keyboardShortcut("n", modifiers: [.command, .shift])
 
@@ -67,8 +67,8 @@ struct tigerflowApp: App {
                 }
                 .keyboardShortcut("1", modifiers: .command)
 
-                Button("生活流") {
-                    NotificationCenter.default.post(name: .selectFlow, object: FlowType.life)
+                Button("日程流") {
+                    NotificationCenter.default.post(name: .selectFlow, object: FlowType.schedule)
                 }
                 .keyboardShortcut("2", modifiers: .command)
 

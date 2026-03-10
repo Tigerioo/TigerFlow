@@ -27,8 +27,11 @@ struct TimelineListView: View {
     @State private var editorTags: [Tag] = []
     @State private var editorEntities: [Entity] = []
 
-    /// 是否显示同步到生活流的选项（默认关闭）
-    @State private var syncToLife: Bool = false
+    /// 是否显示同步到日程流的选项（默认关闭）
+    @State private var syncToSchedule: Bool = false
+
+    /// 编辑器选择的时间（仅日程流使用）
+    @State private var editorTime: Date = Date()
 
     @Query private var allTags: [Tag]
     @Query private var allEntities: [Entity]
@@ -39,8 +42,8 @@ struct TimelineListView: View {
         switch flowType {
         case .task:
             filtered = allItems.filter { $0.flowType == .task }
-        case .life:
-            filtered = allItems.filter { $0.flowType == .life }
+        case .schedule, .life:  // .life 兼容旧数据
+            filtered = allItems.filter { $0.flowType == .schedule || $0.flowType == .life }
         case .event:
             filtered = allItems.filter { $0.flowType == .event }
         case .custom:
@@ -105,11 +108,12 @@ struct TimelineListView: View {
                         isCreating: isCreating,
                         flowType: flowType,
                         showSyncOption: flowType == .task && isCreating,
-                        syncToLife: $syncToLife,
+                        syncToSchedule: $syncToSchedule,
                         title: $editorTitle,
                         content: $editorContent,
                         tags: $editorTags,
                         entities: $editorEntities,
+                        selectedTime: flowType == .schedule ? $editorTime : nil,
                         onSave: saveEditor,
                         onCancel: cancelEditor,
                         onDelete: editingItem != nil ? { deleteItem(item: editingItem!) } : nil
@@ -147,7 +151,8 @@ struct TimelineListView: View {
         editorContent = ""
         editorTags = []
         editorEntities = []
-        syncToLife = false
+        syncToSchedule = false
+        editorTime = Date()
         isCreating = true
         editingItem = nil
     }
@@ -158,6 +163,7 @@ struct TimelineListView: View {
         editorContent = item.content ?? ""
         editorTags = item.tags
         editorEntities = item.entities
+        editorTime = item.occurredAt
         isCreating = false
     }
 
@@ -169,7 +175,7 @@ struct TimelineListView: View {
             editorContent = ""
             editorTags = []
             editorEntities = []
-            syncToLife = false
+            syncToSchedule = false
         }
     }
 
@@ -189,9 +195,17 @@ struct TimelineListView: View {
             if isCreating {
                 // 新建
                 let flow = getOrCreateFlow(for: flowType)
+                var occurredAt = Date()
+
+                // 日程流使用选择的时间
+                if flowType == .schedule {
+                    occurredAt = combineDateAndTime(date: Date(), time: editorTime)
+                }
+
                 let item = FlowItem(
                     title: cleanTitle,
                     content: editorContent.isEmpty ? nil : editorContent,
+                    occurredAt: occurredAt,
                     flow: flow
                 )
                 item.tags = editorTags
@@ -205,9 +219,9 @@ struct TimelineListView: View {
                     entity.usageCount += 1
                 }
 
-                // 同步到生活流
-                if flowType == .task && syncToLife {
-                    syncToLifeFlow(item: item)
+                // 同步到日程流
+                if flowType == .task && syncToSchedule {
+                    syncToScheduleFlow(item: item)
                 }
 
                 modelContext.insert(item)
@@ -218,6 +232,11 @@ struct TimelineListView: View {
                 item.tags = editorTags
                 item.entities = editorEntities
                 item.updatedAt = Date()
+
+                // 日程流更新时间
+                if flowType == .schedule {
+                    item.occurredAt = combineDateAndTime(date: item.occurredAt, time: editorTime)
+                }
 
                 // 增加使用次数
                 for tag in editorTags {
@@ -243,23 +262,23 @@ struct TimelineListView: View {
 
     private func saveToLife(item: FlowItem) {
         withAnimation {
-            let lifeFlow = getOrCreateFlow(for: .life)
+            let scheduleFlow = getOrCreateFlow(for: .schedule)
 
-            let lifeItem = FlowItem(
+            let scheduleItem = FlowItem(
                 title: item.title,
                 content: item.content,
-                occurredAt: Date(),
+                occurredAt: combineDateAndTime(date: Date(), time: editorTime),
                 isFromTaskSync: true,
                 sourceItemId: item.id,
-                flow: lifeFlow,
+                flow: scheduleFlow,
                 domain: item.domain,
                 isMemorable: item.isMemorable
             )
 
-            lifeItem.tags = item.tags
-            lifeItem.entities = item.entities
+            scheduleItem.tags = item.tags
+            scheduleItem.entities = item.entities
 
-            modelContext.insert(lifeItem)
+            modelContext.insert(scheduleItem)
         }
     }
 
@@ -312,23 +331,23 @@ struct TimelineListView: View {
         }
     }
 
-    private func syncToLifeFlow(item: FlowItem) {
-        let lifeFlow = getOrCreateFlow(for: .life)
+    private func syncToScheduleFlow(item: FlowItem) {
+        let scheduleFlow = getOrCreateFlow(for: .schedule)
 
-        let lifeItem = FlowItem(
+        let scheduleItem = FlowItem(
             title: item.title,
             content: item.content,
-            occurredAt: Date(),
+            occurredAt: combineDateAndTime(date: Date(), time: editorTime),
             isFromTaskSync: true,
             sourceItemId: item.id,
-            flow: lifeFlow,
+            flow: scheduleFlow,
             domain: item.domain
         )
 
-        lifeItem.tags = item.tags
-        lifeItem.entities = item.entities
+        scheduleItem.tags = item.tags
+        scheduleItem.entities = item.entities
 
-        modelContext.insert(lifeItem)
+        modelContext.insert(scheduleItem)
     }
 
     private func getOrCreateFlow(for type: FlowType) -> Flow {
@@ -349,6 +368,22 @@ struct TimelineListView: View {
         modelContext.insert(newFlow)
         return newFlow
     }
+
+    /// 将日期和时间合并
+    private func combineDateAndTime(date: Date, time: Date) -> Date {
+        let calendar = Calendar.current
+        let dateComponents = calendar.dateComponents([.year, .month, .day], from: date)
+        let timeComponents = calendar.dateComponents([.hour, .minute], from: time)
+
+        var combined = DateComponents()
+        combined.year = dateComponents.year
+        combined.month = dateComponents.month
+        combined.day = dateComponents.day
+        combined.hour = timeComponents.hour
+        combined.minute = timeComponents.minute
+
+        return calendar.date(from: combined) ?? date
+    }
 }
 
 // MARK: - 统一任务编辑器视图
@@ -357,12 +392,15 @@ struct TaskEditorView: View {
     let isCreating: Bool
     let flowType: FlowType
     let showSyncOption: Bool
-    @Binding var syncToLife: Bool
+    @Binding var syncToSchedule: Bool
 
     @Binding var title: String
     @Binding var content: String
     @Binding var tags: [Tag]
     @Binding var entities: [Entity]
+
+    /// 选择的时间（仅日程流使用）
+    var selectedTime: Binding<Date>?
 
     let onSave: () -> Void
     let onCancel: () -> Void
@@ -482,7 +520,7 @@ struct TaskEditorView: View {
 
                 // 同步选项（仅创建时显示）
                 if showSyncOption {
-                    Toggle(isOn: $syncToLife) {
+                    Toggle(isOn: $syncToSchedule) {
                         HStack(spacing: 4) {
                             Image(systemName: "heart.fill")
                                 .foregroundColor(.orange)
@@ -492,6 +530,53 @@ struct TaskEditorView: View {
                     }
                     .toggleStyle(.button)
                 }
+            }
+
+            // 时间选择器（仅日程流显示）
+            if let selectedTime = selectedTime {
+                HStack {
+                    Image(systemName: "clock")
+                        .foregroundColor(.secondary)
+                    Text("时间")
+                        .foregroundColor(.secondary)
+
+                    Spacer()
+
+                    // 快速选择按钮
+                    let quickTimes = [0, 15, 30, 45]
+                    ForEach(quickTimes, id: \.self) { minute in
+                        Button {
+                            var components = Calendar.current.dateComponents([.year, .month, .day], from: Date())
+                            components.hour = 0
+                            components.minute = minute
+                            if let date = Calendar.current.date(from: components) {
+                                selectedTime.wrappedValue = date
+                            }
+                        } label: {
+                            Text(String(format: "%02d:%02d", 0, minute))
+                                .font(.caption)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(
+                                    Calendar.current.component(.minute, from: selectedTime.wrappedValue) == minute
+                                    ? Color.accentColor.opacity(0.2)
+                                    : Color.clear
+                                )
+                                .cornerRadius(4)
+                        }
+                        .buttonStyle(.plain)
+                    }
+
+                    // 精确时间选择
+                    DatePicker(
+                        "",
+                        selection: selectedTime,
+                        displayedComponents: .hourAndMinute
+                    )
+                    .labelsHidden()
+                    .frame(width: 80)
+                }
+                .padding(.vertical, 4)
             }
 
             Divider()

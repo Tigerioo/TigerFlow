@@ -255,11 +255,12 @@ struct DaySection: View {
             if isExpanded {
                 VStack(spacing: 0) {
                     ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
-                        // 任务流添加滑动操作
-                        if flowType == .task {
+                        // 任务流和日程流添加滑动操作
+                        if flowType == .task || flowType == .schedule {
                             TimelineItemView(
                                 item: item,
                                 showCheckbox: flowType.showCheckbox,
+                                showTime: flowType.showTime,
                                 isFirstOfDay: index == 0,
                                 isLastOfDay: index == items.count - 1,
                                 onToggleComplete: { onToggleComplete?(item) },
@@ -272,6 +273,7 @@ struct DaySection: View {
                             TimelineItemView(
                                 item: item,
                                 showCheckbox: flowType.showCheckbox,
+                                showTime: flowType.showTime,
                                 isFirstOfDay: index == 0,
                                 isLastOfDay: index == items.count - 1,
                                 onToggleComplete: { onToggleComplete?(item) },

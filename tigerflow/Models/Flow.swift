@@ -72,7 +72,7 @@ extension Flow {
     static func createDefaultFlows() -> [Flow] {
         [
             Flow(name: "任务流", type: .task, icon: "checkmark.circle.fill", color: "#FF3B30", sortOrder: 0),
-            Flow(name: "生活流", type: .life, icon: "heart.fill", color: "#FF9500", sortOrder: 1),
+            Flow(name: "日程流", type: .schedule, icon: "calendar", color: "#FF9500", sortOrder: 1),
             Flow(name: "事件流", type: .event, icon: "star.fill", color: "#FFCC00", sortOrder: 2)
         ]
     }

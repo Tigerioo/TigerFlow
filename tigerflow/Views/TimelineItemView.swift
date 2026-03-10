@@ -12,6 +12,7 @@ import SwiftData
 struct TimelineItemView: View {
     let item: FlowItem
     let showCheckbox: Bool
+    var showTime: Bool = false
     var isFirstOfDay: Bool = false
     var isLastOfDay: Bool = false
 
@@ -29,20 +30,29 @@ struct TimelineItemView: View {
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
-            // 左侧：复选框或时间
+            // 1. 复选框
             checkboxView
-                .frame(width: showCheckbox ? 24 : 44, height: 24)
+                .frame(width: 24, height: 24)
 
-            // 右侧：内容
+            // 2. 时间（仅日程流显示）
+            if showTime {
+                Text(timeFormatter.string(from: item.occurredAt))
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                    .foregroundColor(item.isCompleted ? .secondary : .primary)
+                    .frame(width: 50, alignment: .leading)
+            }
+
+            // 3. 右侧：内容 + 标签/对象
             VStack(alignment: .leading, spacing: 6) {
                 // 标题行
-                HStack(alignment: .center, spacing: 8) {
+                HStack(alignment: .top, spacing: 8) {
                     Text(item.title)
                         .font(.body)
                         .fontWeight(item.isCompleted ? .regular : .medium)
                         .foregroundColor(item.isCompleted ? .secondary : .primary)
                         .strikethrough(item.isCompleted, color: item.isCompleted ? themePurple.opacity(0.6) : .clear)
-                        .lineLimit(2)
+                        .lineLimit(nil)
 
                     Spacer()
 
@@ -76,8 +86,6 @@ struct TimelineItemView: View {
                     .padding(.top, 2)
                 }
             }
-
-            Spacer(minLength: 0)
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 10)
@@ -106,8 +114,8 @@ struct TimelineItemView: View {
                 onToggleComplete?()
             } label: {
                 ZStack {
-                    // 圆角矩形边框
-                    RoundedRectangle(cornerRadius: 4)
+                    // 圆形边框
+                    Circle()
                         .strokeBorder(
                             item.isCompleted ? themePurple : Color.secondary.opacity(0.5),
                             lineWidth: 2
@@ -115,7 +123,7 @@ struct TimelineItemView: View {
 
                     // 完成后填充紫色
                     if item.isCompleted {
-                        RoundedRectangle(cornerRadius: 4)
+                        Circle()
                             .fill(themePurple)
                     }
 
@@ -128,14 +136,6 @@ struct TimelineItemView: View {
                 }
             }
             .buttonStyle(.plain)
-        } else {
-            // 非任务流：显示时间
-            VStack(alignment: .leading, spacing: 2) {
-                Text(timeFormatter.string(from: item.occurredAt))
-                    .font(.caption)
-                    .fontWeight(.medium)
-                    .foregroundColor(.secondary)
-            }
         }
     }
 
@@ -153,6 +153,7 @@ struct TimelineItemView: View {
         TimelineItemView(
             item: FlowItem(title: "完成项目提案", content: "这是任务内容"),
             showCheckbox: true,
+            showTime: true,
             isFirstOfDay: true,
             isLastOfDay: false,
             onToggleComplete: {},
@@ -164,7 +165,8 @@ struct TimelineItemView: View {
 
         TimelineItemView(
             item: FlowItem(title: "写周报 #工作 @老板"),
-            showCheckbox: false,
+            showCheckbox: true,
+            showTime: true,
             isFirstOfDay: false,
             isLastOfDay: false
         )
@@ -174,6 +176,7 @@ struct TimelineItemView: View {
         TimelineItemView(
             item: FlowItem(title: "已完成的任务", status: .completed),
             showCheckbox: true,
+            showTime: true,
             isFirstOfDay: true,
             isLastOfDay: true
         )

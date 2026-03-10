@@ -10,7 +10,7 @@ import SwiftUI
 
 /// Sidebar 项目枚举
 enum SidebarItem: Hashable, Identifiable {
-    case flow(FlowType)           // 系统 Flow（任务流、生活流、事件流）
+    case flow(FlowType)           // 系统 Flow（任务流、日程流、事件流）
     case customFlow(UUID)         // 自定义 Flow
     case domain(UUID)             // 领域
     case person(UUID)             // 人物
