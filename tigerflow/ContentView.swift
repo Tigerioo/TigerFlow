@@ -33,13 +33,23 @@ struct ContentView: View {
     @ViewBuilder
     private var contentView: some View {
         if let flowType = appState.currentFlowType {
-            TimelineListView(flowType: flowType, appState: appState)
+            // 使用各模块独立的视图
+            switch flowType {
+            case .task:
+                TaskFlowView(appState: appState)
+            case .schedule, .life:
+                ScheduleFlowView(appState: appState)
+            case .event:
+                EventFlowView(appState: appState)
+            case .custom:
+                TaskFlowView(appState: appState) // 暂时复用任务流
+            }
         } else if appState.selectedSidebarItem != nil {
             // 筛选模式 - 显示所有相关项
             FilteredTimelineView(appState: appState)
         } else {
             // 默认显示任务流
-            TimelineListView(flowType: .task, appState: appState)
+            TaskFlowView(appState: appState)
         }
     }
 
