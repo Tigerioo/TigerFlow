@@ -432,6 +432,7 @@ struct TaskEditorView: View {
     @State private var parsedTagNames: [String] = []
     @State private var parsedEntityNames: [String] = []
     @FocusState private var isFocused: Bool
+    @State private var showDeleteConfirmation: Bool = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -588,7 +589,7 @@ struct TaskEditorView: View {
                 // 删除按钮（仅编辑时显示）
                 if let onDelete = onDelete, !isCreating {
                     Button(role: .destructive) {
-                        onDelete()
+                        showDeleteConfirmation = true
                     } label: {
                         HStack(spacing: 4) {
                             Image(systemName: "trash")
@@ -597,6 +598,14 @@ struct TaskEditorView: View {
                     }
                     .buttonStyle(.bordered)
                     .tint(.red)
+                    .alert("确认删除", isPresented: $showDeleteConfirmation) {
+                        Button("取消", role: .cancel) { }
+                        Button("删除", role: .destructive) {
+                            onDelete()
+                        }
+                    } message: {
+                        Text("确定要删除这条记录吗？此操作无法撤销。")
+                    }
                 }
 
                 Button("保存") {
