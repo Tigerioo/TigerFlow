@@ -66,6 +66,25 @@ struct TimelineListView: View {
         isCreating || editingItem != nil
     }
 
+    // 编辑器是否有内容
+    private var hasEditorContent: Bool {
+        let cleanTitle = editorTitle
+            .replacingOccurrences(of: "#\\w+", with: "", options: .regularExpression)
+            .replacingOccurrences(of: "@\\w+", with: "", options: .regularExpression)
+            .trimmingCharacters(in: .whitespaces)
+            .replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
+        return !cleanTitle.isEmpty || !editorContent.isEmpty || !editorTags.isEmpty || !editorEntities.isEmpty
+    }
+
+    // 点击空白区域处理
+    private func handleBackgroundTap() {
+        if hasEditorContent {
+            saveEditor()
+        } else {
+            cancelEditor()
+        }
+    }
+
     var body: some View {
         ZStack(alignment: .top) {
             // Timeline 内容
@@ -96,11 +115,11 @@ struct TimelineListView: View {
         .overlay(alignment: .top) {
             if showEditor {
                 ZStack(alignment: .top) {
-                    // 阻塞层
+                    // 阻塞层 - 点击空白区域保存或关闭
                     Color.black.opacity(0.001)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .onTapGesture {
-                            // 阻止点击穿透
+                            handleBackgroundTap()
                         }
 
                     // 编辑器视图
