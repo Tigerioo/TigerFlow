@@ -48,7 +48,7 @@ struct SettingsView: View {
                             request.requestedScopes = [.fullName, .email]
                         } onCompletion: { result in
                             Task {
-                                authManager.handleLogin(result: result)
+                                authManager.handleAppleLogin(result: result)
                             }
                         }
                         .signInWithAppleButtonStyle(.black)
