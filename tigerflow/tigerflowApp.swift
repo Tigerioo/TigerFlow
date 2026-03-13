@@ -24,8 +24,8 @@ struct tigerflowApp: App {
         let modelConfiguration = ModelConfiguration(
             schema: schema,
             isStoredInMemoryOnly: false,
-            allowsSave: true,
-            cloudKitDatabase: .automatic
+            allowsSave: true
+            // CloudKit 已禁用，使用自建后端 API 同步
         )
 
         do {
