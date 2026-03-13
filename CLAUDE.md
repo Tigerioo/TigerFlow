@@ -1,10 +1,12 @@
 # TigerFlow 项目规范
 
-> 本文件会自动加载，请严格遵守
+> 本文件会自动加载为系统提示
 
 ---
 
-## 开发习惯（每次开发完成后必须执行）
+## 开发流程（请配合执行）
+
+每次完成功能开发后，请帮我执行以下步骤：
 
 1. **构建验证**
    - iOS: `xcodebuild -project TigerFlow.xcodeproj -scheme TigerFlow -configuration Debug -destination 'platform=iOS Simulator,name=iPhone 17 Pro' build`
