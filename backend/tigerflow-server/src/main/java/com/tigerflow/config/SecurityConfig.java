@@ -33,6 +33,9 @@ public class SecurityConfig {
                 .antMatchers("/api/v1/auth/**").permitAll()
                 .antMatchers("/api/v1/sync/**").authenticated()
                 .antMatchers("/api/v1/**").authenticated()
+                .antMatchers("/swagger-ui/**").permitAll()
+                .antMatchers("/swagger-ui.html").permitAll()
+                .antMatchers("/v3/api-docs/**").permitAll()
                 .anyRequest().permitAll()
                 .and()
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
