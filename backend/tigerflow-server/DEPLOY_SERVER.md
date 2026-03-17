@@ -1,17 +1,12 @@
-# 服务器部署步骤
+# 服务器部署步骤 - 阿里云 PolarDB
 
-## 1. 准备 MySQL 数据库
+## 1. 准备阿里云 PolarDB
 
-```sql
--- 登录 MySQL
-mysql -u root -p
-
--- 创建数据库和用户
-CREATE DATABASE tigerflow CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE USER 'tigerflow'@'localhost' IDENTIFIED BY 'tigerflow123';
-GRANT ALL PRIVILEGES ON tigerflow.* TO 'tigerflow'@'localhost';
-FLUSH PRIVILEGES;
-```
+1. 登录阿里云控制台
+2. 创建 PolarDB MySQL 兼容版集群
+3. 创建数据库: `tigerflow`
+4. 创建账号: `tigerflow` / `tigerflow123`
+5. 配置白名单: 添加服务器 IP
 
 ## 2. 上传代码到服务器
 
@@ -27,7 +22,16 @@ cd backend/tigerflow-server
 mvn clean package -DskipTests
 ```
 
-## 3. 启动服务
+## 3. 配置环境变量
+
+```bash
+# 编辑启动脚本或设置环境变量
+export DB_PASSWORD=你的数据库密码
+export JWT_SECRET=你的JWT密钥
+export CORS_ALLOWED_ORIGINS=https://你的域名
+```
+
+## 4. 启动服务
 
 ```bash
 cd /你的项目目录/backend/tigerflow-server
@@ -39,7 +43,7 @@ mkdir -p logs
 ./start.sh
 ```
 
-## 4. 验证
+## 5. 验证
 
 ```bash
 # 检查健康状态
@@ -65,10 +69,16 @@ tail -f logs/tigerflow-server.log
 curl http://localhost:8080/actuator/health
 ```
 
-## 内存说明
+## PolarDB 连接信息
 
-start.sh 中已配置 JVM 内存：
-- 初始堆: 256MB
-- 最大堆: 512MB
+在 `application-prod.yml` 中配置：
 
-适合 2GB 服务器运行。
+```yaml
+spring:
+  datasource:
+    url: jdbc:mysql://your-endpoint.polardb.cn-hangzhou.rds.aliyuncs.com:3306/tigerflow
+    username: tigerflow
+    password: ${DB_PASSWORD}
+```
+
+**注意**: 从阿里云控制台获取正确的连接地址。
