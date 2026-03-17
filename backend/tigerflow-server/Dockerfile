@@ -2,8 +2,8 @@
 # 构建: docker build -t tigerflow-server:latest .
 # 运行: docker run -d -p 8080:8080 --name tigerflow-server tigerflow-server:latest
 
-# 使用 JDK 11 基础镜像
-FROM eclipse-temurin:11-jre-alpine
+# 使用 JDK 8 基础镜像
+FROM eclipse-temurin:8-jre-alpine
 
 # 设置时区
 ENV TZ=Asia/Shanghai

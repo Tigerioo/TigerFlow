@@ -12,7 +12,7 @@ JAR_FILE="target/${APP_NAME}-${APP_VERSION}.jar"
 PID_FILE="${APP_NAME}.pid"
 LOG_FILE="logs/${APP_NAME}.log"
 
-# JVM 内存配置（2GB 服务器优化）
+# JVM 内存配置（2GB 服务器优化，JDK 8 兼容）
 JAVA_OPTS="-Xms256m -Xmx512m -XX:+UseG1GC -XX:MaxGCPauseMillis=100"
 
 # 环境变量（生产环境请修改这些值）
