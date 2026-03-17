@@ -11,6 +11,7 @@ APP_VERSION="1.0.0"
 JAR_FILE="target/${APP_NAME}-${APP_VERSION}.jar"
 PID_FILE="${APP_NAME}.pid"
 LOG_FILE="logs/${APP_NAME}.log"
+PORT=9998
 
 # JVM 内存配置（2GB 服务器优化，JDK 8 兼容）
 JAVA_OPTS="-Xms256m -Xmx512m -XX:+UseG1GC -XX:MaxGCPauseMillis=100"
@@ -71,10 +72,10 @@ log "等待服务启动..."
 
 # 等待服务启动
 for i in {1..30}; do
-    if curl -s http://localhost:8080/actuator/health > /dev/null 2>&1; then
+    if curl -s http://localhost:${PORT}/actuator/health > /dev/null 2>&1; then
         log "✅ 服务启动成功!"
-        log "API 地址: http://localhost:8080"
-        log "Swagger: http://localhost:8080/swagger-ui.html"
+        log "API 地址: http://localhost:${PORT}"
+        log "Swagger: http://localhost:${PORT}/swagger-ui.html"
         exit 0
     fi
     sleep 2
