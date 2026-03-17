@@ -1,0 +1,62 @@
+# TigerFlow 一键部署 Docker Compose
+# 使用方法: docker-compose up -d
+
+version: '3.8'
+
+services:
+  # MySQL 数据库
+  mysql:
+    image: mysql:8.0
+    container_name: tigerflow-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: tigerflow
+      MYSQL_USER: tigerflow
+      MYSQL_PASSWORD: tigerflow123
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - tigerflow-network
+
+  # TigerFlow 后端服务
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tigerflow-server
+    restart: always
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_PASSWORD: tigerflow123
+      JWT_SECRET: tigerflow-secret-key-must-be-at-least-256-bits-long-for-hs256
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/tigerflow?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&createDatabaseIfNotExist=true
+      SPRING_DATASOURCE_USERNAME: tigerflow
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - tigerflow-network
+
+volumes:
+  mysql_data:
+    driver: local
+
+networks:
+  tigerflow-network:
+    driver: bridge

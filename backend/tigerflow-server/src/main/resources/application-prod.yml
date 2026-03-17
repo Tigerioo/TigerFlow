@@ -1,0 +1,78 @@
+# 生产环境配置
+server:
+  port: 8080
+
+spring:
+  application:
+    name: tigerflow-server
+
+  # MySQL 数据库配置
+  datasource:
+    url: jdbc:mysql://localhost:3306/tigerflow?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&createDatabaseIfNotExist=true
+    username: tigerflow
+    password: ${DB_PASSWORD:tigerflow123}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      idle-timeout: 300000
+      connection-timeout: 20000
+      max-lifetime: 1200000
+
+  # 禁用 H2 控制台
+  h2:
+    console:
+      enabled: false
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+        format_sql: true
+
+  # Redis 配置（可选，如需分布式缓存可启用）
+  # data:
+  #   redis:
+  #     host: localhost
+  #     port: 6379
+  #     password: ${REDIS_PASSWORD:}
+  #     timeout: 6000ms
+
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: Asia/Shanghai
+
+app:
+  jwt:
+    # 生产环境请使用更复杂的密钥（通过环境变量注入）
+    secret: ${JWT_SECRET:tigerflow-secret-key-must-be-at-least-256-bits-long-for-hs256}
+    access-token-validity: 3600
+    refresh-token-validity: 604800
+  cors:
+    # 生产环境请指定具体的域名
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:*}
+
+logging:
+  level:
+    com.tigerflow: info
+    org.springframework.security: warn
+  file:
+    name: logs/tigerflow.log
+    max-size: 10MB
+    max-history: 30
+
+# Actuator 健康检查配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when-authorized
+  health:
+    db:
+      enabled: true
