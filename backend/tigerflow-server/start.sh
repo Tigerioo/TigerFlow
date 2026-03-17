@@ -17,7 +17,7 @@ PORT=9998
 JAVA_OPTS="-Xms256m -Xmx512m -XX:+UseG1GC -XX:MaxGCPauseMillis=100"
 
 # 环境变量（生产环境请修改这些值）
-export DB_PASSWORD=${DB_PASSWORD:-tigerflow123}
+export DB_PASSWORD=r7v2cw4}UC(d
 export JWT_SECRET=${JWT_SECRET:-tigerflow-secret-key-must-be-at-least-256-bits-long-for-hs256}
 export CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS:-*}
 

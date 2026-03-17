@@ -3,11 +3,12 @@ import Foundation
 // MARK: - API 配置
 
 enum APIConfig {
-    // 开发环境使用 localhost，真机测试使用实际 IP
-    #if targetEnvironment(simulator)
-    static let baseURL = "http://localhost:8080"
+    // 生产环境：使用服务器地址
+    // 开发/模拟器：使用 localhost
+    #if DEBUG
+    static let baseURL = "http://localhost:9998"
     #else
-    static let baseURL = "http://10.0.0.1:8080"  // TODO: 替换为实际 IP
+    static let baseURL = "http://47.103.28.227:9998"
     #endif
 
     static let apiVersion = "v1"
