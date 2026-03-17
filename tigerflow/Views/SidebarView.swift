@@ -16,6 +16,7 @@ struct SidebarView: View {
     @Query(sort: \Entity.usageCount, order: .reverse) private var entities: [Entity]
 
     @Bindable var appState: AppState
+    @State private var showingSettings = false
 
     var body: some View {
         List(selection: $appState.selectedSidebarItem) {
@@ -32,6 +33,14 @@ struct SidebarView: View {
         .toolbar {
             ToolbarItem(placement: .automatic) {
                 Button {
+                    showingSettings = true
+                } label: {
+                    Image(systemName: "gearshape")
+                }
+                .help("设置")
+            }
+            ToolbarItem(placement: .automatic) {
+                Button {
                     appState.searchText = ""
                     appState.showingFilters.toggle()
                 } label: {
@@ -39,6 +48,9 @@ struct SidebarView: View {
                 }
                 .help("筛选")
             }
+        }
+        .sheet(isPresented: $showingSettings) {
+            SettingsView()
         }
         .searchable(text: $appState.searchText, prompt: "搜索")
         .onAppear {
