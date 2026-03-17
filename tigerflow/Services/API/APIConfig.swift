@@ -6,7 +6,7 @@ enum APIConfig {
     // 生产环境：使用服务器地址
     // 开发/模拟器：使用 localhost
     #if DEBUG
-    static let baseURL = "http://localhost:9998"
+    static let baseURL = "http://47.103.28.227:9998"
     #else
     static let baseURL = "http://47.103.28.227:9998"
     #endif
