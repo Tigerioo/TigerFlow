@@ -1,5 +1,6 @@
 package com.tigerflow.service;
 
+import com.tigerflow.dto.request.AppleLoginRequest;
 import com.tigerflow.dto.request.LoginRequest;
 import com.tigerflow.dto.response.AuthResponse;
 import com.tigerflow.entity.Token;
@@ -89,6 +90,48 @@ public class AuthService {
     }
 
     /**
+     * Apple 登录
+     * 简化版：直接使用 userIdentifier 作为用户唯一标识
+     * 生产环境建议：使用 authorizationCode 调用 Apple 服务器进行验证
+     */
+    @Transactional
+    public AuthResponse appleLogin(AppleLoginRequest request) {
+        String userIdentifier = request.getUserIdentifier();
+        if (userIdentifier == null || userIdentifier.isEmpty()) {
+            throw new RuntimeException("Apple 用户标识不能为空");
+        }
+
+        log.info("Apple 登录尝试: userIdentifier={}", userIdentifier);
+
+        // 查找是否已存在 Apple 用户
+        User user = userRepository.findByAppleUserId(userIdentifier).orElse(null);
+
+        if (user == null) {
+            // 新用户，创建账户
+            String nickname = request.getFullName();
+            if (nickname == null || nickname.isEmpty()) {
+                nickname = "Apple 用户";
+            }
+
+            String email = request.getEmail();
+
+            user = User.createWithApple(userIdentifier, email, nickname);
+            user = userRepository.save(user);
+
+            log.info("新建 Apple 用户: id={}, nickname={}", user.getId(), nickname);
+        } else {
+            // 老用户，更新邮箱和昵称（如果提供）
+            if (request.getEmail() != null && !request.getEmail().isEmpty()) {
+                user.setEmail(request.getEmail());
+                user = userRepository.save(user);
+            }
+            log.info("Apple 用户登录: id={}", user.getId());
+        }
+
+        return createTokenAndResponse(user, request.getUserIdentifier(), "Apple Device");
+    }
+
+    /**
      * 创建 Token 并返回响应
      */
     private AuthResponse createTokenAndResponse(User user, String deviceId, String deviceName) {
@@ -117,6 +160,7 @@ public class AuthService {
                 .token(accessToken)
                 .refreshToken(refreshToken)
                 .expiresAt(token.getExpiresAt().toString())
+                .user(AuthResponse.UserInfo.fromEntity(user))
                 .build();
     }
 }

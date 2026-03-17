@@ -1,5 +1,6 @@
 package com.tigerflow.controller;
 
+import com.tigerflow.dto.request.AppleLoginRequest;
 import com.tigerflow.dto.request.LoginRequest;
 import com.tigerflow.dto.request.RegisterRequest;
 import com.tigerflow.dto.response.ApiResponse;
@@ -53,6 +54,17 @@ public class AuthController {
                 request.getPassword(),
                 request.getNickname()
         );
+        return ApiResponse.success(response);
+    }
+
+    @Operation(summary = "Apple 登录", description = "使用 Apple ID 登录系统")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "登录成功"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "请求参数错误", content = @Content)
+    })
+    @PostMapping("/apple/login")
+    public ApiResponse<AuthResponse> appleLogin(@RequestBody AppleLoginRequest request) {
+        AuthResponse response = authService.appleLogin(request);
         return ApiResponse.success(response);
     }
 

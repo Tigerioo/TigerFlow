@@ -80,11 +80,25 @@ struct RegisterRequest: Codable {
     let nickname: String?
 }
 
+struct AppleLoginRequest: Codable {
+    let identityToken: String?
+    let authorizationCode: String?
+    let userIdentifier: String
+    let fullName: String?
+    let email: String?
+}
+
 struct AuthResponse: Codable {
-    let accessToken: String
+    let userId: Int64?
+    let token: String?
     let refreshToken: String
-    let expiresIn: Int
+    let expiresAt: String?
+    let expiresIn: Int?
     let user: UserDTO?
+
+    var accessToken: String {
+        token ?? ""
+    }
 }
 
 struct UserDTO: Codable {

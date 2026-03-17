@@ -181,6 +181,43 @@ final class APIClient {
         TokenManager.shared.clearTokens()
     }
 
+    // MARK: - Apple 登录
+
+    func appleLogin(
+        identityToken: String?,
+        authorizationCode: String?,
+        userIdentifier: String,
+        fullName: String?,
+        email: String?
+    ) async throws -> AuthResponse {
+        let body = AppleLoginRequest(
+            identityToken: identityToken,
+            authorizationCode: authorizationCode,
+            userIdentifier: userIdentifier,
+            fullName: fullName,
+            email: email
+        )
+
+        let response: APIResponse<AuthResponse> = try await request(
+            endpoint: "\(APIConfig.apiBaseURL)/auth/apple/login",
+            method: .post,
+            body: body,
+            requiresAuth: false
+        )
+
+        guard let data = response.data else {
+            throw APIError.serverError(response.status ?? 0, response.error)
+        }
+
+        // 保存 Token
+        TokenManager.shared.saveTokens(
+            accessToken: data.accessToken,
+            refreshToken: data.refreshToken
+        )
+
+        return data
+    }
+
     // MARK: - Flow 接口
 
     func getFlows() async throws -> [FlowDTO] {
