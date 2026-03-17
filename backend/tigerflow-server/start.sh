@@ -22,7 +22,7 @@ export JWT_SECRET=${JWT_SECRET:-tigerflow-secret-key-must-be-at-least-256-bits-l
 export CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS:-*}
 
 # 应用配置
-SPRING_OPTS="--spring.profiles.active=prod"
+SPRING_OPTS="-Dspring.profiles.active=prod"
 
 # 颜色
 RED='\033[0;31m'
