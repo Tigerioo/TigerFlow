@@ -1,6 +1,6 @@
 # 生产环境配置 - 阿里云 PolarDB
 server:
-  port: 8080
+  port: 9998
 
 spring:
   application:
@@ -9,8 +9,8 @@ spring:
   # 阿里云 PolarDB 数据库配置（兼容 MySQL 5.7）
   datasource:
     # PolarDB 连接地址（从阿里云控制台获取）
-    url: jdbc:mysql://your-polar-db-endpoint.polardb.cn-hangzhou.rds.aliyuncs.com:3306/tigerflow?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
-    username: tigerflow
+    url: jdbc:mysql://pc-uf62hbquapjd63r02.rwlb.rds.aliyuncs.com:3306/tigerflow?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+    username: leshare
     password: ${DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
