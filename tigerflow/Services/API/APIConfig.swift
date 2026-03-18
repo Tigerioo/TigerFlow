@@ -6,9 +6,9 @@ enum APIConfig {
     // 生产环境：使用服务器地址
     // 开发/模拟器：使用 localhost
     #if DEBUG
-    static let baseURL = "http://47.103.28.227:9998"
+    static let baseURL = "https://flow.tsinro.cn"
     #else
-    static let baseURL = "http://47.103.28.227:9998"
+    static let baseURL = "https://flow.tsinro.cn"
     #endif
 
     static let apiVersion = "v1"

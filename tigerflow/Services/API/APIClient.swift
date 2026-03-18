@@ -13,6 +13,10 @@ final class APIClient {
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 30
         config.timeoutIntervalForResource = 60
+        // 允许蜂窝网络访问
+        config.allowsCellularAccess = true
+        // 允许使用网络代理
+        config.connectionProxyDictionary = [:]
         self.session = URLSession(configuration: config)
 
         self.decoder = JSONDecoder()
