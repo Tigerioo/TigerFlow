@@ -354,6 +354,26 @@ final class APIClient {
         }
         return data
     }
+
+    // MARK: - 测试网络连接
+
+    func testNetworkConnection() async throws -> Bool {
+        guard let url = URL(string: "https://www.baidu.com") else {
+            return false
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.timeoutInterval = 10
+
+        let (_, response) = try await session.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            return false
+        }
+
+        return httpResponse.statusCode == 200
+    }
 }
 
 // MARK: - HTTP Method

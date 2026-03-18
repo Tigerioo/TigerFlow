@@ -139,12 +139,39 @@ struct SettingsView: View {
     @ViewBuilder
     private var syncSection: some View {
         Section {
+            // 测试网络连接按钮
+            Button {
+                Task {
+                    do {
+                        let success = try await APIClient.shared.testNetworkConnection()
+                        if success {
+                            print("✅ 网络连接正常")
+                        } else {
+                            print("❌ 网络连接失败")
+                        }
+                    } catch {
+                        print("❌ 网络错误: \(error)")
+                    }
+                }
+            } label: {
+                HStack {
+                    Image(systemName: "wifi")
+                        .foregroundColor(.blue)
+                    Text("测试网络连接")
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+
             HStack {
                 Image(systemName: "server.rack")
                     .foregroundColor(.orange)
-                Text("服务器同步")
+                Text("服务器地址")
                 Spacer()
-                Text("自动")
+                Text(APIConfig.baseURL)
+                    .font(.caption)
                     .foregroundColor(.secondary)
             }
 
