@@ -84,8 +84,35 @@ final class NetworkMonitor: ObservableObject {
         monitor.start()
     }
 
+    /// 检查网络连接 - 测试实际API服务器
     func checkConnection() async -> Bool {
-        guard let url = URL(string: "https://www.baidu.com") else {
+        // 测试实际API服务器的健康检查端点
+        guard let url = URL(string: "\(APIConfig.baseURL)/actuator/health") else {
+            return await checkBasicNetwork()
+        }
+
+        var request = URLRequest(url: url)
+        request.timeoutInterval = 10
+        request.httpMethod = "GET"
+
+        do {
+            let (_, response) = try await URLSession.shared.data(for: request)
+            if let httpResponse = response as? HTTPURLResponse {
+                // 接受任何服务器响应，只要可达即可
+                print("网络检测响应: \(httpResponse.statusCode)")
+                return (200...499).contains(httpResponse.statusCode)
+            }
+            return false
+        } catch {
+            print("网络检测失败: \(error.localizedDescription)")
+            // 如果API服务器不可达，再尝试基础网络检测
+            return await checkBasicNetwork()
+        }
+    }
+
+    /// 基础网络检测 - 使用苹果的可达性检测
+    private func checkBasicNetwork() async -> Bool {
+        guard let url = URL(string: "https://www.apple.com") else {
             return false
         }
 
