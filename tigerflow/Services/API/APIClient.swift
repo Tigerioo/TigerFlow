@@ -9,27 +9,62 @@ final class APIClient {
     private let decoder: JSONDecoder
     private let encoder: JSONEncoder
 
+    // 重试配置
+    private let maxRetries = 3
+    private let retryDelay: TimeInterval = 1.0
+
     private init() {
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 30
         config.timeoutIntervalForResource = 60
-        // 允许蜂窝网络访问
         config.allowsCellularAccess = true
-        // 允许使用网络代理
-        config.connectionProxyDictionary = [:]
+        config.waitsForConnectivity = true  // 等待网络连接
         self.session = URLSession(configuration: config)
 
         self.decoder = JSONDecoder()
         self.encoder = JSONEncoder()
     }
 
-    // MARK: - 通用请求方法
+    // MARK: - 通用请求方法（带重试）
 
     func request<T: Codable>(
         endpoint: String,
         method: HTTPMethod = .get,
         body: Encodable? = nil,
-        requiresAuth: Bool = true
+        requiresAuth: Bool = true,
+        retryCount: Int = 0
+    ) async throws -> T {
+        do {
+            return try await performRequest(
+                endpoint: endpoint,
+                method: method,
+                body: body,
+                requiresAuth: requiresAuth
+            )
+        } catch {
+            // 判断是否应该重试
+            if retryCount < maxRetries, shouldRetry(error: error) {
+                print("⚠️ 请求失败，\(retryCount + 1)/\(maxRetries) 次重试...")
+                try await Task.sleep(nanoseconds: UInt64(retryDelay * 1_000_000_000))
+                return try await request(
+                    endpoint: endpoint,
+                    method: method,
+                    body: body,
+                    requiresAuth: requiresAuth,
+                    retryCount: retryCount + 1
+                )
+            }
+            throw error
+        }
+    }
+
+    // MARK: - 执行实际请求
+
+    private func performRequest<T: Codable>(
+        endpoint: String,
+        method: HTTPMethod,
+        body: Encodable?,
+        requiresAuth: Bool
     ) async throws -> T {
         guard let url = URL(string: endpoint) else {
             throw APIError.invalidURL
@@ -73,8 +108,7 @@ final class APIClient {
             case 401:
                 // Token 过期，尝试刷新
                 if try await refreshToken() {
-                    // 刷新成功，重试原请求
-                    return try await self.request(
+                    return try await performRequest(
                         endpoint: endpoint,
                         method: method,
                         body: body,
@@ -94,6 +128,32 @@ final class APIClient {
         } catch {
             throw APIError.networkError(error)
         }
+    }
+
+    // MARK: - 判断是否应该重试
+
+    private func shouldRetry(error: Error) -> Bool {
+        let nsError = error as NSError
+
+        // 网络相关错误码
+        let retryableCodes = [
+            -1009, // NSURLErrorNotConnectedToInternet
+            -1001, // NSURLErrorTimedOut
+            -1003, // NSURLErrorCannotFindHost
+            -1004, // NSURLErrorCannotConnectToHost
+            -1005, // NSURLErrorNetworkConnectionLost
+            -1006  // NSURLErrorNotConnectedToInternet
+        ]
+
+        return retryableCodes.contains(nsError.code)
+    }
+
+    // MARK: - 测试网络连接（带诊断）
+
+    func testNetworkConnection() async throws -> Bool {
+        // 先检查网络状态
+        let isConnected = await NetworkMonitor.shared.checkConnection()
+        return isConnected
     }
 
     // MARK: - 认证接口
@@ -353,26 +413,6 @@ final class APIClient {
             throw APIError.serverError(response.status ?? 0, response.error)
         }
         return data
-    }
-
-    // MARK: - 测试网络连接
-
-    func testNetworkConnection() async throws -> Bool {
-        guard let url = URL(string: "https://www.baidu.com") else {
-            return false
-        }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.timeoutInterval = 10
-
-        let (_, response) = try await session.data(for: request)
-
-        guard let httpResponse = response as? HTTPURLResponse else {
-            return false
-        }
-
-        return httpResponse.statusCode == 200
     }
 }
 

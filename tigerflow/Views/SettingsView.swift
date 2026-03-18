@@ -14,6 +14,8 @@ struct SettingsView: View {
     @StateObject private var authManager = AuthManager()
     @Environment(\.dismiss) private var dismiss
     @State private var showingLoginSheet = false
+    @State private var networkError: String?
+    @State private var isTestingNetwork = false
 
     var body: some View {
         NavigationStack {
@@ -25,6 +27,9 @@ struct SettingsView: View {
                 if !authManager.isLoggedIn {
                     loginOptionsSection
                 }
+
+                // 网络状态
+                networkStatusSection
 
                 // 同步设置
                 syncSection
@@ -51,6 +56,80 @@ struct SettingsView: View {
             .sheet(isPresented: $showingLoginSheet) {
                 LoginSheetView(authManager: authManager, isPresented: $showingLoginSheet)
             }
+            .alert("网络错误", isPresented: .init(
+                get: { networkError != nil },
+                set: { if !$0 { networkError = nil } }
+            )) {
+                Button("重试") {
+                    testNetwork()
+                }
+                Button("确定", role: .cancel) {}
+            } message: {
+                Text(networkError ?? "网络连接不可用")
+            }
+        }
+    }
+
+    // MARK: - 网络状态
+
+    @ViewBuilder
+    private var networkStatusSection: some View {
+        Section {
+            // 测试网络连接按钮
+            Button {
+                testNetwork()
+            } label: {
+                HStack {
+                    Image(systemName: isTestingNetwork ? "wifi.exclamationmark" : "wifi")
+                        .foregroundColor(isTestingNetwork ? .orange : .blue)
+
+                    if isTestingNetwork {
+                        Text("测试中...")
+                    } else {
+                        Text("测试网络连接")
+                    }
+
+                    Spacer()
+                }
+            }
+            .disabled(isTestingNetwork)
+
+            HStack {
+                Image(systemName: "server.rack")
+                    .foregroundColor(.orange)
+                Text("服务器地址")
+                Spacer()
+                Text(APIConfig.baseURL)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+        } header: {
+            Text("网络")
+        }
+    }
+
+    private func testNetwork() {
+        isTestingNetwork = true
+        networkError = nil
+
+        Task {
+            do {
+                let success = try await APIClient.shared.testNetworkConnection()
+                if success {
+                    print("✅ 网络连接正常")
+                } else {
+                    networkError = "无法连接到服务器，请检查网络设置"
+                }
+            } catch {
+                // 转换错误为友好提示
+                let nsError = error as NSError
+                if nsError.code == -1009 {
+                    networkError = "网络连接不可用，请检查网络设置"
+                } else {
+                    networkError = error.localizedDescription
+                }
+            }
+            isTestingNetwork = false
         }
     }
 
@@ -267,8 +346,10 @@ struct LoginSheetView: View {
                 Section {
                     TextField("用户名", text: $username)
                         .textContentType(.username)
+                        #if !os(macOS)
                         .autocapitalization(.none)
                         .autocorrectionDisabled()
+                        #endif
 
                     SecureField("密码", text: $password)
                         .textContentType(.password)
@@ -319,7 +400,9 @@ struct LoginSheetView: View {
                 }
             }
             .navigationTitle(isRegisterMode ? "注册" : "登录")
+            #if !os(macOS)
             .navigationBarTitleDisplayMode(.inline)
+            #endif
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("取消") {
