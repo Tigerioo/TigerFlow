@@ -94,6 +94,21 @@ struct SettingsView: View {
             }
             .disabled(isTestingNetwork)
 
+            // 详细网络测试页面
+            NavigationLink {
+                NetworkTestView()
+            } label: {
+                HStack {
+                    Image(systemName: "antenna.radiowaves.left.and.right")
+                        .foregroundColor(.purple)
+                    Text("详细网络测试")
+                    Spacer()
+                    Text("flowdemo01方式")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+
             HStack {
                 Image(systemName: "server.rack")
                     .foregroundColor(.orange)
