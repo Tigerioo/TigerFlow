@@ -1,6 +1,6 @@
 //
-//  tigerflowApp.swift
-//  tigerflow
+//  TimeFlowApp.swift
+//  TigerFlow
 //
 //  应用入口
 //
@@ -9,7 +9,7 @@ import SwiftUI
 import SwiftData
 
 @main
-struct tigerflowApp: App {
+struct TimeFlowApp: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             Flow.self,
